@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -248,10 +249,76 @@
 }
 .trend-up { background: #d3f9d8; color: #1b5e2b; }
 .trend-down { background: #ffe3e3; color: #c92a2a; }
+
+/* =========================
+   BLOQUEIO POR SENHA (PIN)
+   ========================= */
+#lockScreen{
+  position:fixed;
+  inset:0;
+  background: linear-gradient(135deg,#0a2a43,#004b6b);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: 99999;
+}
+.lock-box{
+  background:#fff;
+  padding:28px 22px;
+  border-radius:14px;
+  text-align:center;
+  width: 320px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.30);
+  border:1px solid rgba(0,0,0,.06);
+}
+.lock-box h2{ margin:0 0 6px 0; font-size:18px; font-weight:800; color:#0b2235; }
+.lock-box p{ margin:0 0 10px 0; color:#4b5563; font-size:13px; }
+.lock-box input{
+  width:100%;
+  padding:10px 12px;
+  font-size:20px;
+  text-align:center;
+  letter-spacing: 6px;
+  border-radius: 12px;
+  border:1px solid var(--border);
+  outline:none;
+}
+.lock-box input:focus{ border-color:#a5d8ff; box-shadow: 0 0 0 4px rgba(165,216,255,.35); }
+.lock-box .btns{ display:flex; gap:10px; margin-top:12px; }
+.lock-box button{
+  flex:1;
+  padding:10px 12px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  font-weight:800;
+}
+.lock-box button.primary{ background:#004b6b; color:#fff; }
+.lock-box button.secondary{ background:#e9ecef; color:#0b2235; }
+#pinErrorMsg{ color:#c92a2a; margin-top:10px; font-weight:700; font-size:12px; min-height: 16px; }
+
 </style>
 </head>
 
 <body>
+
+<!-- =========================
+     BLOQUEIO POR SENHA (PIN)
+     ========================= -->
+<div id="lockScreen" aria-hidden="false">
+  <div class="lock-box">
+    <h2>🔒 Acesso Restrito</h2>
+    <p>Digite a senha de <b>4 números</b> para acessar</p>
+    <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" />
+    <div class="btns">
+      <button class="primary" type="button" onclick="checkPin()">Entrar</button>
+      <button class="secondary" type="button" onclick="clearPin()">Limpar</button>
+    </div>
+    <div id="pinErrorMsg"></div>
+    <div class="small mt-2" style="opacity:.8;">Dica: após entrar, o acesso fica salvo neste dispositivo.</div>
+  </div>
+</div>
+
 <div class="appShell">
   <!-- SIDEBAR -->
   <aside class="sidebar noPrint">
@@ -1106,6 +1173,7 @@
               <input id="restoreJSON" type="file" accept="application/json" hidden>
             </label>
             <button class="btn btn-outline-danger fw-semibold" id="btnWipeDB">Limpar banco (TOTAL)</button>
+            <button class="btn btn-outline-secondary fw-semibold" type="button" onclick="sairBloqueio()">Sair (bloquear)</button>
           </div>
         </div>
 
@@ -1180,6 +1248,84 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+/* =========================
+   BLOQUEIO POR SENHA (PIN)
+   =========================
+   Observação: em site estático (GitHub Pages), isso é uma proteção visual/local.
+*/
+const NAZA_PIN_CORRETO = "1234"; // <<< TROQUE AQUI para sua senha de 4 números
+
+function lockShow(){
+  const el = document.getElementById("lockScreen");
+  if(!el) return;
+  el.style.display = "flex";
+  el.setAttribute("aria-hidden","false");
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  setTimeout(()=>{
+    const inp = document.getElementById("pinInput");
+    if(inp){ inp.focus(); if(inp.select) inp.select(); }
+  }, 50);
+}
+function lockHide(){
+  const el = document.getElementById("lockScreen");
+  if(!el) return;
+  el.style.display = "none";
+  el.setAttribute("aria-hidden","true");
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
+}
+function clearPin(){
+  const inp = document.getElementById("pinInput");
+  if(inp) inp.value = "";
+  const msg = document.getElementById("pinErrorMsg");
+  if(msg) msg.textContent = "";
+  if(inp) inp.focus();
+}
+function checkPin(){
+  const inp = document.getElementById("pinInput");
+  const msg = document.getElementById("pinErrorMsg");
+  const val = (inp?.value || "").trim();
+
+  if(!/^\d{4}$/.test(val)){
+    if(msg) msg.textContent = "Digite exatamente 4 números.";
+    return;
+  }
+  if(val === NAZA_PIN_CORRETO){
+    localStorage.setItem("NAZA_UNLOCKED", "true");
+    lockHide();
+    clearPin();
+  } else {
+    if(msg) msg.textContent = "Senha incorreta.";
+  }
+}
+function sairBloqueio(){
+  localStorage.removeItem("NAZA_UNLOCKED");
+  lockShow();
+}
+
+// Enter para confirmar
+document.addEventListener("keydown", (e)=>{
+  const el = document.getElementById("lockScreen");
+  if(!el || el.style.display === "none") return;
+  if(e.key === "Enter"){ e.preventDefault(); checkPin(); }
+});
+
+// Inicializa bloqueio
+(function initLock(){
+  try{
+    if(localStorage.getItem("NAZA_UNLOCKED") === "true"){
+      lockHide();
+    }else{
+      lockShow();
+    }
+  }catch(_){
+    // se o navegador bloquear storage, ainda bloqueia
+    lockShow();
+  }
+})();
+
+
 /* =========================================================
    Dados dos equipamentos
 ========================================================= */
@@ -3790,6 +3936,100 @@ async function seedInitialWeekIfEmpty(){
   toast("App pronto.");
 })();
 </script>
+
+<!-- =========================
+     BLOQUEIO POR SENHA (PIN) - OVERRIDE SEGURO
+     (não conflita com window.onload e garante funções globais)
+     ========================= -->
+<script>
+(function(){
+  const PIN_CORRETO = "1234"; // <<< TROQUE AQUI (4 números)
+
+  function byId(id){ return document.getElementById(id); }
+
+  function getEls(){
+    return {
+      lock: byId("lockScreen"),
+      inp: byId("pinInput"),
+      msg: byId("pinErrorMsg")
+    };
+  }
+
+  function showLock(){
+    const {lock, inp, msg} = getEls();
+    if(!lock) return;
+    lock.style.display = "flex";
+    lock.setAttribute("aria-hidden","false");
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    if(msg) msg.textContent = "";
+    setTimeout(()=>{ if(inp){ inp.focus(); if(inp.select) inp.select(); } }, 30);
+  }
+
+  function hideLock(){
+    const {lock} = getEls();
+    if(!lock) return;
+    lock.style.display = "none";
+    lock.setAttribute("aria-hidden","true");
+    document.documentElement.style.overflow = "";
+    document.body.style.overflow = "";
+  }
+
+  function clearPin(){
+    const {inp, msg} = getEls();
+    if(inp) inp.value = "";
+    if(msg) msg.textContent = "";
+    if(inp) inp.focus();
+  }
+
+  function checkPin(){
+    const {inp, msg} = getEls();
+    const val = (inp && inp.value ? inp.value : "").trim();
+
+    if(!/^\d{4}$/.test(val)){
+      if(msg) msg.textContent = "Digite exatamente 4 números.";
+      return;
+    }
+    if(val === PIN_CORRETO){
+      try{ localStorage.setItem("NAZA_UNLOCKED","true"); }catch(e){}
+      hideLock();
+      clearPin();
+    } else {
+      if(msg) msg.textContent = "Senha incorreta.";
+    }
+  }
+
+  function sairBloqueio(){
+    try{ localStorage.removeItem("NAZA_UNLOCKED"); }catch(e){}
+    showLock();
+  }
+
+  // Expor para os botões onclick
+  window.checkPin = checkPin;
+  window.clearPin = clearPin;
+  window.sairBloqueio = sairBloqueio;
+
+  // Enter confirma quando bloqueado
+  document.addEventListener("keydown", (e)=>{
+    const lock = byId("lockScreen");
+    if(!lock || lock.style.display === "none") return;
+    if(e.key === "Enter"){ e.preventDefault(); checkPin(); }
+  });
+
+  // Inicializa quando DOM estiver pronto
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const {lock} = getEls();
+    if(!lock) return;
+
+    let unlocked = false;
+    try{ unlocked = (localStorage.getItem("NAZA_UNLOCKED") === "true"); }catch(e){ unlocked = false; }
+
+    if(unlocked) hideLock();
+    else showLock();
+  });
+})();
+</script>
+
 </body>
 </html>
 
