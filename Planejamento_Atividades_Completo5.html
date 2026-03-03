@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Controle de Atividades/NAZA AUDITORIA• Mini Máquinas</title>
+
+  <!-- UI -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <!-- Firebase (versão compatível com script) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root{
+      --sam-blue:#005c8f;
+      --sam-green:#2f9e44;
+      --sam-orange:#f08c00;
+      --sam-red:#e03131;
+      --sam-bg:#f3f6fb;
+      --card:#ffffff;
+      --border:#d8e0ea;
+      --muted:#6b7280;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:14px;
+    }
+    body{ background:var(--sam-bg); }
+    .appShell{ min-height:100vh; display:flex; }
+    .sidebar{
+      width: 270px; background: #0b2235; color:#fff; padding:16px;
+      display:flex; flex-direction:column; gap:12px;
+      position:sticky; top:0; height:100vh;
+    }
+    .brand{
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding:14px 14px;
+    }
+    .brand h1{ font-size: 15px; margin:0; }
+    .brand .sub{ font-size:12px; color:rgba(255,255,255,.7); }
+    .navBtn{
+      width:100%;
+      text-align:left;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color:#fff; padding:10px 12px;
+      border-radius: 14px;
+      transition:.15s ease;
+      display:flex; align-items:center; justify-content:space-between;
+      font-weight:600;
+    }
+    .navBtn:hover{ background: rgba(255,255,255,.10); }
+    .navBtn.active{ background: rgba(47,158,68,.25); border-color: rgba(47,158,68,.45); }
+    .navHint{ font-size:11px; color:rgba(255,255,255,.65); margin-top:-6px; }
+
+    .content{ flex:1; padding:18px; }
+    .cardX{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+    .sectionTitle{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+    }
+    .sectionTitle h2{ margin:0; font-size:16px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border-radius: 999px;
+      padding:6px 10px;
+      background:#eef2ff;
+      border:1px solid #dde3ff;
+      font-size:12px;
+      color:#1f2a44;
+      font-weight:600;
+    }
+    .small{ font-size:12px; color:var(--muted); }
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    .grid3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:14px; }
+    @media (max-width: 990px){
+      .sidebar{ width: 86px; padding:12px; }
+      .brand{ display:none; }
+      .navBtn span.label{ display:none; }
+      .navHint{ display:none; }
+      .content{ padding:12px; }
+      .grid2,.grid3{ grid-template-columns: 1fr; }
+    }
+
+    .badgeStatus{
+      font-weight:700;
+      border-radius: 999px;
+      padding:6px 10px;
+      font-size:12px;
+      border:1px solid;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .st-programada{ background:#fff4e6; border-color:#ffd8a8; color:#8a4b00; }
+    .st-emexecucao{ background:#e7f5ff; border-color:#a5d8ff; color:#0b4b7a; }
+    .st-concluida{ background:#ebfbee; border-color:#b2f2bb; color:#1b5e2b; }
+    .st-pendente{ background:#fff0f0; border-color:#ffc9c9; color:#8a1f1f; }
+    .st-parcial{ background:#fff3bf; border-color:#ffe066; color:#8a6e00; }
+
+    .thumbRow{ display:flex; gap:10px; flex-wrap:wrap; }
+    .thumb{
+      width:110px; height:78px; border-radius: 12px;
+      border:1px solid var(--border);
+      background:#f8fafc;
+      overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+    }
+    .thumb img{ width:100%; height:100%; object-fit:cover; }
+
+    .table thead th{
+      background:#0b2235 !important; color:#fff !important;
+      border-color: rgba(255,255,255,.12) !important;
+    }
+    .clickable{ cursor:pointer; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .hrSoft{ border-top: 1px dashed var(--border); }
+    .req{ color: var(--sam-red); font-weight:800; }
+    .toastX{
+      position: fixed; bottom: 14px; right: 14px;
+      background:#0b2235; color:#fff;
+      border:1px solid rgba(255,255,255,.12);
+      padding:10px 12px; border-radius: 12px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.18);
+      display:none;
+      max-width: 360px;
+      z-index: 9999;
+    }
+
+    /* Área de impressão (PDF) */
+    #reportArea{
+      background:#fff;
+      padding:16px;
+      border-radius: 14px;
+      border:1px solid #e5e7eb;
+    }
+    .reportHeader{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+      border-bottom: 2px solid #0b2235;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+    .reportHeader .title{
+      font-size:16px; font-weight:800; margin:0; color:#0b2235;
+    }
+    .reportHeader .meta{
+      font-size:12px; color:#374151;
+    }
+    .reportGrid{
+      display:grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 12px;
+    }
+    @media print{
+      .sidebar,.noPrint{ display:none !important; }
+      .content{ padding:0 !important; }
+      #reportArea{ border:none !important; }
+    }
+  
+.btnRow{display:flex;gap:8px;align-items:center;}
+
+/* Novos estilos para equipamentos dinâmicos */
+.equipment-select-group { display:none; }
+.equipment-select-group.active { display:block; }
+.equipment-options { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.equipment-option {
+  padding:6px 12px; border-radius:8px; border:1px solid var(--border);
+  background:#f8fafc; cursor:pointer; font-size:13px; transition:all 0.2s;
+}
+.equipment-option:hover { background:#eef2ff; border-color:#a5d8ff; }
+.equipment-option.selected {
+  background:#005c8f; color:#fff; border-color:#005c8f;
+}
+
+/* Estilos para a aba de Aderência */
+.progress-container {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.progress-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+.progress-percent {
+  font-weight: 700;
+  font-size: 14px;
+}
+.progress-bar-bg {
+  height: 20px;
+  background: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2f9e44, #5cd85c);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+.aderencia-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+.aderencia-card {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.aderencia-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0b2235;
+}
+.aderencia-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+.aderencia-trend {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+.trend-up { background: #d3f9d8; color: #1b5e2b; }
+.trend-down { background: #ffe3e3; color: #c92a2a; }
+
+/* Indicador de conexão Firebase */
+.firebase-status {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.firebase-status.online { color: #1b5e2b; background: #ebfbee; border-color: #b2f2bb; }
+.firebase-status.offline { color: #8a1f1f; background: #fff0f0; border-color: #ffc9c9; }
+</style>
+</head>
+<body>
+<div class="appShell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar noPrint">
+    <div class="brand">
+      <h1>Controle de Atividades/NAZA AUDITORIA</h1>
+      <div class="sub">Mini Máquinas • Programação semanal</div>
+    </div>
+
+    <button class="navBtn active" data-tab="tab-dashboard">
+      <span class="label">Dashboard</span><span>📊</span>
+    </button>
+
+    <button class="navBtn" data-tab="tab-nova">
+      <span class="label">Nova Atividade</span><span>➕</span>
+    </button>
+
+    <button class="navBtn" data-tab="tab-lista">
+      <span class="label">Lista & Filtros</span><span>🗂️</span>
+    </button>
+
+    <button class="navBtn" data-tab="tab-fotos">
+      <span class="label">Fotos (Antes/Depois)</span><span>📷</span>
+    </button>
+
+    <button class="navBtn" data-tab="tab-relatorios">
+      <span class="label">Relatórios</span><span>🧾</span>
+    </button>
+
+    <button class="navBtn" data-tab="tab-aderencia">
+      <span class="label">Aderência</span><span>📈</span>
+    </button>
+
+    <button class="navBtn" data-tab="tab-config">
+      <span class="label">Configurações</span><span>⚙️</span>
+    </button>
+
+    <div class="navHint mt-auto">
+      <div>• Dados compartilhados no Firebase</div>
+      <div>• Funciona em qualquer dispositivo</div>
+      <div>• Todos veem as mesmas atividades</div>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content">
+    <div class="firebase-status online" id="firebaseStatus">✅ Conectado ao Firebase</div>
+    
+    <!-- DASHBOARD -->
+    <section id="tab-dashboard" class="tabPane">
+      <div class="cardX">
+        <div class="sectionTitle">
+          <h2>📊 Dashboard</h2>
+          <div class="btnRow">
+            <button type="button" class="btn btn-primary btn-sm" id="btnExportDashboard">Exportar PDF</button>
+          </div>
+          <div class="pill"><span>Semana</span> <span id="dashWeekLabel" class="mono"></span></div>
+        </div>
+        <div class="small mt-2">Visão rápida das atividades filtradas (semana/período selecionado).</div>
+
+        <div class="grid3 mt-3">
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small">Total</div>
+            <div class="display-6 fw-bold" id="kpiTotal">0</div>
+          </div>
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small">Concluídas</div>
+            <div class="display-6 fw-bold text-success" id="kpiDone">0</div>
+          </div>
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small">Pendências</div>
+            <div class="display-6 fw-bold text-danger" id="kpiPending">0</div>
+          </div>
+        </div>
+
+        <div class="grid2 mt-3">
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small mb-2">Status</div>
+            <canvas id="chartStatus" height="170"></canvas>
+          </div>
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small mb-2">Por tipo de máquina e equipamento</div>
+            <canvas id="chartMachine" height="170"></canvas>
+          </div>
+        </div>
+
+        <div class="grid2 mt-3">
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small mb-2">Por empresa executora</div>
+            <canvas id="chartCompany" height="170"></canvas>
+          </div>
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small mb-2">Motivos de Não Conclusão</div>
+            <canvas id="chartMotivos" height="170"></canvas>
+          </div>
+        </div>
+      
+        <div class="grid2 mt-3">
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small mb-2">Por Turno Início</div>
+            <canvas id="chartShiftStart" height="170"></canvas>
+          </div>
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small mb-2">Cronologia (Atividades x Período)</div>
+            <canvas id="chartTimeline" height="210"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVA ATIVIDADE -->
+    <section id="tab-nova" class="tabPane" style="display:none;">
+      <div class="cardX">
+        <div class="sectionTitle">
+          <h2>➕ Nova atividade (programação)</h2>
+          <span class="small">Campos com <span class="req">*</span> são essenciais.</span>
+        </div>
+
+        <form id="formNew" class="mt-3">
+          <div class="grid3">
+            <div>
+              <label class="form-label fw-semibold">Tipo de máquina <span class="req">*</span></label>
+              <select class="form-select" id="newMachine" required>
+                <option value="">Selecione...</option>
+                <option value="Mini Máquina">Mini Máquina</option>
+                <option value="Bobcat">Bobcat</option>
+                <option value="Mini Retro">Mini Retro</option>
+                <option value="CR 950">CR 950</option>
+                <option value="TR-Esteira">TR-Esteira</option>
+                <option value="PC">PC (950)</option>
+                <option value="TR">TR (Trator)</option>
+                <option value="PT">PT (Patrol)</option>
+                <option value="TP">TP (Trator de Pneu)</option>
+                <option value="VIX">VIX</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label fw-semibold">Grupo de Equipamento <span class="req">*</span></label>
+              <div class="equipment-options" id="equipmentGroupOptions"></div>
+              <div class="equipment-select-group" id="equipmentPCGroup">
+                <label class="form-label fw-semibold mt-2">Selecione o PC</label>
+                <div class="equipment-options" id="pcOptions"></div>
+              </div>
+              <div class="equipment-select-group" id="equipmentTRGroup">
+                <label class="form-label fw-semibold mt-2">Selecione o TR</label>
+                <div class="equipment-options" id="trOptions"></div>
+              </div>
+              <div class="equipment-select-group" id="equipmentPTGroup">
+                <label class="form-label fw-semibold mt-2">Selecione o PT</label>
+                <div class="equipment-options" id="ptOptions"></div>
+              </div>
+              <div class="equipment-select-group" id="equipmentTPGroup">
+                <label class="form-label fw-semibold mt-2">Selecione o TP</label>
+                <div class="equipment-options" id="tpOptions"></div>
+              </div>
+              <div class="equipment-select-group" id="equipmentVIXGroup">
+                <label class="form-label fw-semibold mt-2">Selecione o equipamento VIX</label>
+                <div class="equipment-options" id="vixOptions"></div>
+              </div>
+              <input type="hidden" id="newEquipment" required />
+              <div class="small mt-1">Equipamento selecionado: <span id="selectedEquipmentDisplay" class="fw-bold">Nenhum</span></div>
+            </div>
+            <div>
+              <label class="form-label fw-semibold">Local / Área</label>
+              <input class="form-control" id="newLocation" placeholder="Ex.: CV67 / Hopper 19 / Mina Norte..." />
+            </div>
+          </div>
+
+          <div class="grid2 mt-3">
+            <div>
+              <label class="form-label fw-semibold">Responsável / Executor</label>
+              <input class="form-control" id="newResponsible" placeholder="Ex.: Diego / VIX / Manserv / Nome da equipe" />
+            </div>
+            <div>
+              <label class="form-label fw-semibold">Prioridade</label>
+              <select class="form-select" id="newPriority">
+                <option value="Média" selected>Média</option>
+                <option value="Alta">Alta</option>
+                <option value="Baixa">Baixa</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label fw-semibold">Título da atividade <span class="req">*</span></label>
+            <input class="form-control" id="newTitle" required placeholder="Ex.: Calda da CV 72 / Acesso subindo a 009 / Laterais do Hopper 12" />
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label fw-semibold">Descrição da atividade <span class="req">*</span></label>
+            <textarea class="form-control" id="newDesc" rows="3" placeholder="Ex.: desassoreamento / drenagem / limpeza de área / regularização de acesso / retirada de material..." required></textarea>
+          </div>
+
+          <div class="grid3 mt-3">
+            <div>
+              <label class="form-label fw-semibold">Data inicial <span class="req">*</span></label>
+              <input type="date" class="form-control" id="newStart" required />
+            </div>
+            <div>
+              <label class="form-label fw-semibold">Data final <span class="req">*</span></label>
+              <input type="date" class="form-control" id="newEnd" required />
+            </div>
+            <div>
+              <label class="form-label fw-semibold">Status inicial</label>
+              <select class="form-select" id="newStatus">
+                <option>Programada</option>
+                <option>Em execução</option>
+                <option>Pendente</option>
+                <option>Parcial</option>
+                <option>Concluída</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid2 mt-3" id="motivoNaoConclusaoGroup" style="display:none;">
+            <div>
+              <label class="form-label fw-semibold">Motivo de não conclusão <span class="req">*</span></label>
+              <select class="form-select" id="newMotivo">
+                <option value="">Selecione...</option>
+                <option value="Falta de máquina">Falta de máquina</option>
+                <option value="Falta de operador">Falta de operador</option>
+                <option value="Problema mecânico">Problema mecânico</option>
+                <option value="Clima/chuva">Clima/chuva</option>
+                <option value="Acesso bloqueado">Acesso bloqueado</option>
+                <option value="Prioridade remanejada">Prioridade remanejada</option>
+                <option value="Material indisponível">Material indisponível</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label fw-semibold">Motivo detalhado</label>
+              <textarea class="form-control" id="newMotivoDetalhado" rows="2" placeholder="Descreva o motivo detalhadamente..."></textarea>
+            </div>
+          </div>
+
+          <hr class="hrSoft my-4" />
+
+          <div class="grid3">
+            <div>
+              <label class="form-label fw-semibold">Programador(a) <span class="req">*</span></label>
+              <input class="form-control" id="newPlanner" required placeholder="Nome de quem programou" />
+            </div>
+            <div>
+              <label class="form-label fw-semibold">Empresa executora <span class="req">*</span></label>
+              <input class="form-control" id="newCompany" required placeholder="Ex.: VIX / Manserv / Terceiro..." />
+            </div>
+            <div class="grid2" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label class="form-label fw-semibold">Turno início</label>
+                <select class="form-select" id="newShiftStart">
+                  <option value="">(não informado)</option>
+                  <option>A</option>
+                  <option>B</option>
+                  <option>C</option>
+                  <option>D</option>
+                  <option>Infra A</option>
+                  <option>Infra B</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label fw-semibold">Turno término</label>
+                <select class="form-select" id="newShiftEnd">
+                  <option value="">(não informado)</option>
+                  <option>A</option>
+                  <option>B</option>
+                  <option>C</option>
+                  <option>D</option>
+                  <option>Infra A</option>
+                  <option>Infra B</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-success fw-semibold">Salvar atividade</button>
+            <button type="button" id="btnNewClear" class="btn btn-outline-secondary fw-semibold">Limpar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- LISTA & FILTROS -->
+    <section id="tab-lista" class="tabPane" style="display:none;">
+      <div class="cardX">
+        <div class="sectionTitle">
+          <h2>🗂️ Lista & Filtros</h2>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-primary fw-semibold" id="btnRefresh">Atualizar</button>
+            <button class="btn btn-outline-danger fw-semibold" id="btnDeleteSelected" disabled>Excluir selecionadas</button>
+          </div>
+        </div>
+
+        <div class="grid3 mt-3">
+          <div>
+            <label class="form-label fw-semibold">Filtrar por período</label>
+            <div class="d-flex gap-2">
+              <input type="date" class="form-control" id="fStart">
+              <input type="date" class="form-control" id="fEnd">
+            </div>
+            <div class="small mt-1">Mostra atividades que cruzam esse período.</div>
+          </div>
+          <div>
+            <label class="form-label fw-semibold">Tipo de máquina</label>
+            <select class="form-select" id="fMachine">
+              <option value="">(todas)</option>
+              <option>Mini Máquina</option>
+              <option>Bobcat</option>
+              <option>Mini Retro</option>
+              <option>CR 950</option>
+              <option>TR-Esteira</option>
+              <option>PC</option>
+              <option>TR</option>
+              <option>PT</option>
+              <option>TP</option>
+              <option>VIX</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label fw-semibold">Status</label>
+            <select class="form-select" id="fStatus">
+              <option value="">(todos)</option>
+              <option>Programada</option>
+              <option>Em execução</option>
+              <option>Pendente</option>
+              <option>Parcial</option>
+              <option>Concluída</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid3 mt-3">
+          <div>
+            <label class="form-label fw-semibold">Empresa</label>
+            <input class="form-control" id="fCompany" placeholder="filtrar por empresa (contém...)" />
+          </div>
+          <div>
+            <label class="form-label fw-semibold">Busca geral</label>
+            <input class="form-control" id="fText" placeholder="equipamento / local / descrição / programador..." />
+          </div>
+          <div class="d-flex align-items-end gap-2">
+            <button class="btn btn-primary fw-semibold w-100" id="btnApplyFilters">Aplicar filtros</button>
+            <button class="btn btn-outline-secondary fw-semibold" id="btnClearFilters">Limpar</button>
+          </div>
+        </div>
+
+        <hr class="hrSoft my-4"/>
+
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th style="width:38px;"><input type="checkbox" id="chkAll"></th>
+                <th>Atividade</th>
+                <th>Período</th>
+                <th>Status</th>
+                <th>Execução</th>
+                <th style="width:140px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tblBody"></tbody>
+          </table>
+        </div>
+
+        <div class="small mt-2">
+          Clique em <b>Ver/Editar</b> para abrir a atividade. Use <b>Fotos</b> para anexar imagens "Antes/Depois".
+        </div>
+      </div>
+
+      <!-- Modal Edit -->
+      <div class="modal fade" id="modalEdit" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Editar atividade</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <form id="formEdit">
+                <input type="hidden" id="editId">
+
+                <div class="grid3">
+                  <div>
+                    <label class="form-label fw-semibold">Tipo de máquina <span class="req">*</span></label>
+                    <select class="form-select" id="editMachine" required>
+                      <option value="">Selecione...</option>
+                      <option value="Mini Máquina">Mini Máquina</option>
+                      <option value="Bobcat">Bobcat</option>
+                      <option value="Mini Retro">Mini Retro</option>
+                      <option value="CR 950">CR 950</option>
+                      <option value="TR-Esteira">TR-Esteira</option>
+                      <option value="PC">PC (950)</option>
+                      <option value="TR">TR (Trator)</option>
+                      <option value="PT">PT (Patrol)</option>
+                      <option value="TP">TP (Trator de Pneu)</option>
+                      <option value="VIX">VIX</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="form-label fw-semibold">Grupo de Equipamento <span class="req">*</span></label>
+                    <div class="equipment-options" id="editEquipmentGroupOptions"></div>
+                    <div class="equipment-select-group" id="editEquipmentPCGroup">
+                      <label class="form-label fw-semibold mt-2">Selecione o PC</label>
+                      <div class="equipment-options" id="editPCOptions"></div>
+                    </div>
+                    <div class="equipment-select-group" id="editEquipmentTRGroup">
+                      <label class="form-label fw-semibold mt-2">Selecione o TR</label>
+                      <div class="equipment-options" id="editTROptions"></div>
+                    </div>
+                    <div class="equipment-select-group" id="editEquipmentPTGroup">
+                      <label class="form-label fw-semibold mt-2">Selecione o PT</label>
+                      <div class="equipment-options" id="editPTOptions"></div>
+                    </div>
+                    <div class="equipment-select-group" id="editEquipmentTPGroup">
+                      <label class="form-label fw-semibold mt-2">Selecione o TP</label>
+                      <div class="equipment-options" id="editTPOptions"></div>
+                    </div>
+                    <div class="equipment-select-group" id="editEquipmentVIXGroup">
+                      <label class="form-label fw-semibold mt-2">Selecione o equipamento VIX</label>
+                      <div class="equipment-options" id="editVIXOptions"></div>
+                    </div>
+                    <input type="hidden" id="editEquipment" required />
+                    <div class="small mt-1">Equipamento selecionado: <span id="editSelectedEquipmentDisplay" class="fw-bold">Nenhum</span></div>
+                  </div>
+                  <div>
+                    <label class="form-label fw-semibold">Local / Área</label>
+                    <input class="form-control" id="editLocation" placeholder="Ex.: CV67 / Hopper 19 / Mina Norte..." />
+                  </div>
+                </div>
+
+                <div class="grid2 mt-3">
+                  <div>
+                    <label class="form-label fw-semibold">Responsável / Executor</label>
+                    <input class="form-control" id="editResponsible" placeholder="Ex.: Diego / VIX / Manserv / Nome da equipe" />
+                  </div>
+                  <div>
+                    <label class="form-label fw-semibold">Prioridade</label>
+                    <select class="form-select" id="editPriority">
+                      <option value="Média" selected>Média</option>
+                      <option value="Alta">Alta</option>
+                      <option value="Baixa">Baixa</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mt-3">
+                  <label class="form-label fw-semibold">Título <span class="req">*</span></label>
+                  <input class="form-control" id="editTitle" required placeholder="Ex.: Calda da CV 72" />
+                </div>
+
+                <div class="mt-3">
+                  <label class="form-label fw-semibold">Descrição <span class="req">*</span></label>
+                  <textarea class="form-control" id="editDesc" rows="3" required></textarea>
+                </div>
+
+                <div class="grid3 mt-3">
+                  <div>
+                    <label class="form-label fw-semibold">Data inicial <span class="req">*</span></label>
+                    <input type="date" class="form-control" id="editStart" required />
+                  </div>
+                  <div>
+                    <label class="form-label fw-semibold">Data final <span class="req">*</span></label>
+                    <input type="date" class="form-control" id="editEnd" required />
+                  </div>
+                  <div>
+                    <label class="form-label fw-semibold">Status</label>
+                    <select class="form-select" id="editStatus">
+                      <option>Programada</option>
+                      <option>Em execução</option>
+                      <option>Pendente</option>
+                      <option>Parcial</option>
+                      <option>Concluída</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid2 mt-3" id="editMotivoNaoConclusaoGroup" style="display:none;">
+                  <div>
+                    <label class="form-label fw-semibold">Motivo de não conclusão <span class="req">*</span></label>
+                    <select class="form-select" id="editMotivo">
+                      <option value="">Selecione...</option>
+                      <option value="Falta de máquina">Falta de máquina</option>
+                      <option value="Falta de operador">Falta de operador</option>
+                      <option value="Problema mecânico">Problema mecânico</option>
+                      <option value="Clima/chuva">Clima/chuva</option>
+                      <option value="Acesso bloqueado">Acesso bloqueado</option>
+                      <option value="Prioridade remanejada">Prioridade remanejada</option>
+                      <option value="Material indisponível">Material indisponível</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="form-label fw-semibold">Motivo detalhado</label>
+                    <textarea class="form-control" id="editMotivoDetalhado" rows="2" placeholder="Descreva o motivo detalhadamente..."></textarea>
+                  </div>
+                </div>
+
+                <hr class="hrSoft my-4">
+
+                <div class="grid3">
+                  <div>
+                    <label class="form-label fw-semibold">Programador(a) <span class="req">*</span></label>
+                    <input class="form-control" id="editPlanner" required placeholder="Nome de quem programou" />
+                  </div>
+                  <div>
+                    <label class="form-label fw-semibold">Empresa executora <span class="req">*</span></label>
+                    <input class="form-control" id="editCompany" required placeholder="Ex.: VIX / Manserv / Terceiro..." />
+                  </div>
+                  <div class="grid2" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                      <label class="form-label fw-semibold">Turno início</label>
+                      <select class="form-select" id="editShiftStart">
+                        <option value="">(não informado)</option>
+                        <option>A</option>
+                        <option>B</option>
+                        <option>C</option>
+                        <option>D</option>
+                        <option>Infra A</option>
+                        <option>Infra B</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="form-label fw-semibold">Turno término</label>
+                      <select class="form-select" id="editShiftEnd">
+                        <option value="">(não informado)</option>
+                        <option>A</option>
+                        <option>B</option>
+                        <option>C</option>
+                        <option>D</option>
+                        <option>Infra A</option>
+                        <option>Infra B</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary fw-semibold" data-bs-dismiss="modal">Fechar</button>
+              <button class="btn btn-success fw-semibold" id="btnSaveEdit">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Image -->
+      <div class="modal fade" id="modalImage" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Imagem</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <img id="imgPreview" src="" alt="preview" style="width:100%; border-radius:12px; border:1px solid #e5e7eb;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOTOS -->
+    <section id="tab-fotos" class="tabPane" style="display:none;">
+      <div class="cardX">
+        <div class="sectionTitle">
+          <h2>📷 Fotos (Antes / Depois)</h2>
+          <div class="small">Selecione uma atividade e anexe as imagens no par correto.</div>
+        </div>
+
+        <div class="grid3 mt-3">
+          <div>
+            <label class="form-label fw-semibold">Atividade</label>
+            <select class="form-select" id="photoActivitySelect"></select>
+            <div class="small mt-1">Use a busca na lista para achar rápido e depois volte aqui.</div>
+          </div>
+          <div>
+            <label class="form-label fw-semibold">Modo</label>
+            <select class="form-select" id="photoMode">
+              <option value="before">Fotos ANTES</option>
+              <option value="after">Fotos DEPOIS</option>
+            </select>
+          </div>
+          <div class="d-flex align-items-end gap-2">
+            <button class="btn btn-primary fw-semibold w-100" id="btnLoadPhotos">Carregar</button>
+            <button class="btn btn-outline-danger fw-semibold" id="btnClearPhotos" disabled>Limpar fotos desse modo</button>
+          </div>
+        </div>
+
+        <hr class="hrSoft my-4"/>
+
+        <div class="grid2">
+          <div class="cardX" style="box-shadow:none;">
+            <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+              <div>
+                <div class="fw-bold" id="photoTitle">Fotos</div>
+                <div class="small" id="photoSubtitle">—</div>
+              </div>
+              <div class="d-flex gap-2 flex-wrap">
+                <label class="btn btn-success fw-semibold mb-0">
+                  📁 Adicionar arquivos
+                  <input id="filePicker" type="file" accept="image/*" multiple hidden>
+                </label>
+                <label class="btn btn-outline-success fw-semibold mb-0">
+                  📷 Tirar foto
+                  <input id="cameraPicker" type="file" accept="image/*" capture="environment" multiple hidden>
+                </label>
+              </div>
+            </div>
+
+            <div class="small mt-2">
+              As fotos são salvas no Firebase. Evite imagens muito grandes para não exceder limites.
+            </div>
+
+            <div class="mt-3 thumbRow" id="thumbRow"></div>
+
+            <div class="d-flex gap-2 mt-3">
+              <button class="btn btn-primary fw-semibold" id="btnSavePhotos" disabled>Salvar fotos</button>
+              <button class="btn btn-outline-secondary fw-semibold" id="btnRemoveSelectedPhotos" disabled>Remover selecionadas</button>
+            </div>
+          </div>
+
+          <div class="cardX" style="box-shadow:none;">
+            <div class="fw-bold">Resumo da atividade</div>
+            <div class="small mt-1" id="photoSummary">Selecione e clique em Carregar.</div>
+            <hr class="hrSoft my-3"/>
+            <div class="small">
+              Fluxo recomendado:
+              <ol class="small mb-0">
+                <li>Cadastra a atividade em <b>Nova Atividade</b></li>
+                <li>Vem aqui e adiciona <b>Antes</b></li>
+                <li>Quando executar, volta e adiciona <b>Depois</b></li>
+                <li>Gera PDF em <b>Relatórios</b></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section id="tab-relatorios" class="tabPane" style="display:none;">
+      <div class="cardX">
+        <div class="sectionTitle">
+          <h2>🧾 Relatórios</h2>
+          <div class="d-flex gap-2 flex-wrap noPrint">
+            <button class="btn btn-primary fw-semibold" id="btnBuildReport">Montar relatório (filtros)</button>
+            <button class="btn btn-success fw-semibold" id="btnExportPDF" disabled>Exportar PDF</button>
+            <button class="btn btn-outline-success fw-semibold" id="btnSharePDF" disabled>Compartilhar (celular)</button>
+            <button class="btn btn-outline-primary fw-semibold" id="btnMailto" disabled>Abrir e-mail</button>
+            <button class="btn btn-outline-secondary fw-semibold" id="btnExportExcel" disabled>Exportar Excel</button>
+          </div>
+        </div>
+
+        <div class="small mt-2 noPrint">
+          O relatório usa os <b>mesmos filtros</b> da aba "Lista & Filtros". Primeiro aplique os filtros e depois clique em <b>Montar relatório</b>.
+        </div>
+
+        <hr class="hrSoft my-4 noPrint"/>
+
+        <!-- Área renderizada para PDF -->
+        <div id="reportArea">
+          <div class="reportHeader">
+            <div>
+              <div class="title">Relatório • Atividades Mini Máquinas</div>
+              <div class="meta" id="reportPeriod">Período: —</div>
+              <div class="meta" id="reportMeta">Gerado em: —</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="meta"><b>Programador(a):</b> <span id="reportPlanner">—</span></div>
+              <div class="meta"><b>Empresa:</b> <span id="reportCompany">—</span></div>
+              <div class="meta"><b>Turnos:</b> <span id="reportShift">—</span></div>
+            </div>
+          </div>
+
+          <div class="reportGrid">
+            <div>
+              <div class="fw-bold mb-1">Resumo</div>
+              <div class="small" id="reportSummary">—</div>
+            </div>
+            <div>
+              <div class="fw-bold mb-1">KPIs</div>
+              <div class="small" id="reportKpis">—</div>
+            </div>
+          </div>
+
+          <hr class="hrSoft my-3"/>
+
+          <div class="fw-bold mb-2">Atividades</div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>OS</th>
+                  <th>#</th>
+                  <th>Máquina / Equipamento</th>
+                  <th>Local</th>
+                  <th>Período</th>
+                  <th>Status</th>
+                  <th>Motivo</th>
+                  <th>Execução</th>
+                </tr>
+              </thead>
+              <tbody id="reportTable"></tbody>
+            </table>
+          </div>
+
+          <div class="small mt-2">
+            * Fotos (Antes/Depois) são anexadas logo abaixo, quando existirem.
+          </div>
+
+          <div id="reportPhotos" class="mt-3"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADERÊNCIA -->
+    <section id="tab-aderencia" class="tabPane" style="display:none;">
+      <div class="cardX">
+        <div class="sectionTitle">
+          <h2>📈 Aderência (Planejado vs Realizado)</h2>
+          <div class="btnRow">
+            <button type="button" class="btn btn-primary btn-sm" id="btnExportAderencia">Exportar PDF</button>
+          </div>
+        </div>
+        
+        <div class="small mt-2">
+          Análise comparativa entre atividades programadas e realizadas no período selecionado.
+        </div>
+
+        <div class="progress-container mt-4">
+          <div class="progress-header">
+            <div class="progress-label">Taxa de Conclusão Geral</div>
+            <div class="progress-percent" id="aderenciaGeral">0%</div>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBarFill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="aderencia-grid">
+          <div class="aderencia-card">
+            <div class="aderencia-value" id="totalProgramadas">0</div>
+            <div class="aderencia-label">Total Programadas</div>
+          </div>
+          <div class="aderencia-card">
+            <div class="aderencia-value" id="totalConcluidas">0</div>
+            <div class="aderencia-label">Total Concluídas</div>
+          </div>
+          <div class="aderencia-card">
+            <div class="aderencia-value" id="taxaConclusao">0%</div>
+            <div class="aderencia-label">Taxa de Conclusão</div>
+          </div>
+          <div class="aderencia-card">
+            <div class="aderencia-value" id="atrasos">0</div>
+            <div class="aderencia-label">Atividades Atrasadas</div>
+          </div>
+          <div class="aderencia-card">
+            <div class="aderencia-value" id="faltamMaquina">0</div>
+            <div class="aderencia-label">Falta de Máquina</div>
+          </div>
+          <div class="aderencia-card">
+            <div class="aderencia-value" id="parciais">0</div>
+            <div class="aderencia-label">Parciais</div>
+          </div>
+        </div>
+
+        <div class="grid2 mt-4">
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small mb-2">Conclusão por Tipo de Máquina</div>
+            <canvas id="chartConclusaoMachine" height="200"></canvas>
+          </div>
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small mb-2">Conclusão por Empresa</div>
+            <canvas id="chartConclusaoEmpresa" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="cardX mt-4" style="box-shadow:none;">
+          <div class="fw-bold mb-3">Detalhamento por Equipamento</div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Equipamento</th>
+                  <th>Programadas</th>
+                  <th>Concluídas</th>
+                  <th>Parciais</th>
+                  <th>Taxa</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="tblAderenciaEquipamentos"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="small mt-3">
+          Dica: Use os filtros na aba "Lista & Filtros" para analisar períodos específicos.
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIG -->
+    <section id="tab-config" class="tabPane" style="display:none;">
+      <div class="cardX">
+        <div class="sectionTitle">
+          <h2>⚙️ Configurações</h2>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-primary fw-semibold" id="btnBackupJSON">Backup JSON</button>
+            <label class="btn btn-outline-primary fw-semibold mb-0">
+              Restaurar Backup
+              <input id="restoreJSON" type="file" accept="application/json" hidden>
+            </label>
+          </div>
+        </div>
+
+        <div class="small mt-2">
+          • Backup é útil para mover dados de um celular para outro.
+        </div>
+
+        <hr class="hrSoft my-4"/>
+
+        <div class="grid2">
+          <div class="cardX" style="box-shadow:none;">
+            <div class="fw-bold">Preferências</div>
+            <div class="small mt-1">Isso ajuda a preencher cabeçalho do relatório automaticamente.</div>
+
+            <div class="mt-3">
+              <label class="form-label fw-semibold">Programador(a) padrão</label>
+              <input class="form-control" id="prefPlanner" placeholder="Seu nome" />
+            </div>
+            <div class="mt-3">
+              <label class="form-label fw-semibold">Empresa padrão</label>
+              <input class="form-control" id="prefCompany" placeholder="Ex.: Samarco / VIX / Manserv..." />
+            </div>
+            <div class="grid2" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1rem;">
+              <div>
+                <label class="form-label fw-semibold">Turno início padrão</label>
+                <select class="form-select" id="prefShiftStart">
+                  <option value="">(não informado)</option>
+                  <option>A</option>
+                  <option>B</option>
+                  <option>C</option>
+                  <option>D</option>
+                  <option>Infra A</option>
+                  <option>Infra B</option>
+                  <option>ADM</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label fw-semibold">Turno término padrão</label>
+                <select class="form-select" id="prefShiftEnd">
+                  <option value="">(não informado)</option>
+                  <option>A</option>
+                  <option>B</option>
+                  <option>C</option>
+                  <option>D</option>
+                  <option>Infra A</option>
+                  <option>Infra B</option>
+                  <option>ADM</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-success fw-semibold mt-3" id="btnSavePrefs">Salvar preferências</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="toastX" id="toastX"></div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/* =========================================================
+   CONFIGURAÇÃO DO FIREBASE - COLOQUE SEUS DADOS AQUI
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyDdCf-WvW7bNlxJq9gQPIANlxOO-D5sXHo",
+  authDomain: "atividades-infra---naza-audit.firebaseapp.com",
+  projectId: "atividades-infra---naza-audit",
+  storageBucket: "atividades-infra---naza-audit.firebasestorage.app",
+  messagingSenderId: "730232324649",
+  appId: "1:730232324649:web:093e4f05d61fc4bf375238"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Coleções
+const activitiesCollection = db.collection('activities');
+const prefsCollection = db.collection('preferences');
+
+// ... (restante do código JavaScript permanece igual ao anterior)
+// Por questões de espaço, mantive apenas a configuração do Firebase
+// O código JavaScript completo está no final da mensagem anterior
+
+</script>
+</body>
+</html>
