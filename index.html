@@ -17,10 +17,6 @@
 
   <!-- Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <style>
     :root{
@@ -252,25 +248,9 @@
 }
 .trend-up { background: #d3f9d8; color: #1b5e2b; }
 .trend-down { background: #ffe3e3; color: #c92a2a; }
-
-/* Indicador de conexão Firebase */
-.firebase-status {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  z-index: 1000;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-.firebase-status.online { color: #1b5e2b; background: #ebfbee; border-color: #b2f2bb; }
-.firebase-status.offline { color: #8a1f1f; background: #fff0f0; border-color: #ffc9c9; }
 </style>
 </head>
+
 <body>
 <div class="appShell">
   <!-- SIDEBAR -->
@@ -309,16 +289,13 @@
     </button>
 
     <div class="navHint mt-auto">
-      <div>• Dados compartilhados no Firebase</div>
-      <div>• Funciona em qualquer dispositivo</div>
-      <div>• Todos veem as mesmas atividades</div>
+      <div>• Dados salvos no dispositivo</div>
+      <div>• Funciona offline</div>
     </div>
   </aside>
 
   <!-- CONTENT -->
   <main class="content">
-    <div class="firebase-status online" id="firebaseStatus">✅ Conectado ao Firebase</div>
-    
     <!-- DASHBOARD -->
     <section id="tab-dashboard" class="tabPane">
       <div class="cardX">
@@ -409,7 +386,9 @@
             </div>
             <div>
               <label class="form-label fw-semibold">Grupo de Equipamento <span class="req">*</span></label>
-              <div class="equipment-options" id="equipmentGroupOptions"></div>
+              <div class="equipment-options" id="equipmentGroupOptions">
+                <!-- Será preenchido dinamicamente -->
+              </div>
               <div class="equipment-select-group" id="equipmentPCGroup">
                 <label class="form-label fw-semibold mt-2">Selecione o PC</label>
                 <div class="equipment-options" id="pcOptions"></div>
@@ -545,11 +524,47 @@
             </div>
           </div>
 
+          <div class="cardX mt-4" style="box-shadow:none;border:1px dashed var(--border);">
+            <div class="fw-semibold">📷 Importar fotos (opcional)</div>
+            <div class="small mt-1">Você pode importar várias fotos de uma vez. O sistema tenta encaixar automaticamente pela <b>descrição/nome do arquivo</b>.</div>
+
+            <div class="grid3 mt-3">
+              <div>
+                <label class="form-label fw-semibold">Classificação</label>
+                <select class="form-select" id="newImportClass">
+                  <option value="auto">Auto</option>
+                  <option value="before">Antes</option>
+                  <option value="after">Depois</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label fw-semibold">Criar atividade se não existir?</label>
+                <select class="form-select" id="newImportAutoCreate">
+                  <option value="yes">Sim</option>
+                  <option value="no">Não</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label fw-semibold">Selecionar fotos</label>
+                <input class="form-control" type="file" id="newImportPhotos" accept="image/*" multiple />
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3 flex-wrap">
+              <button type="button" class="btn btn-primary" id="btnProcessImport">Importar e encaixar</button>
+              <span class="small" id="importHint">Selecione as fotos e clique em Importar.</span>
+            </div>
+          </div>
+
           <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn btn-success fw-semibold">Salvar atividade</button>
             <button type="button" id="btnNewClear" class="btn btn-outline-secondary fw-semibold">Limpar</button>
           </div>
         </form>
+
+        <div class="small mt-3">
+          Dica: depois de salvar, vá em <b>Fotos</b> para anexar "Antes" e "Depois" no registro correto.
+        </div>
       </div>
     </section>
 
@@ -640,7 +655,7 @@
         </div>
       </div>
 
-      <!-- Modal Edit -->
+      <!-- Modal Edit - ATUALIZADA COM SELETOR DINÂMICO DE EQUIPAMENTOS -->
       <div class="modal fade" id="modalEdit" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
           <div class="modal-content">
@@ -671,7 +686,9 @@
                   </div>
                   <div>
                     <label class="form-label fw-semibold">Grupo de Equipamento <span class="req">*</span></label>
-                    <div class="equipment-options" id="editEquipmentGroupOptions"></div>
+                    <div class="equipment-options" id="editEquipmentGroupOptions">
+                      <!-- Será preenchido dinamicamente -->
+                    </div>
                     <div class="equipment-select-group" id="editEquipmentPCGroup">
                       <label class="form-label fw-semibold mt-2">Selecione o PC</label>
                       <div class="equipment-options" id="editPCOptions"></div>
@@ -806,6 +823,10 @@
                     </div>
                   </div>
                 </div>
+
+                <div class="mt-3 small">
+                  Fotos não são editadas aqui — vá em <b>Fotos</b> (aba) para anexar "Antes/Depois".
+                </div>
               </form>
             </div>
             <div class="modal-footer">
@@ -881,7 +902,7 @@
             </div>
 
             <div class="small mt-2">
-              As fotos são salvas no Firebase. Evite imagens muito grandes para não exceder limites.
+              As fotos são gravadas no dispositivo. Evite lotar com muitas imagens muito grandes.
             </div>
 
             <div class="mt-3 thumbRow" id="thumbRow"></div>
@@ -1079,16 +1100,18 @@
         <div class="sectionTitle">
           <h2>⚙️ Configurações</h2>
           <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-outline-primary fw-semibold" id="btnBackupJSON">Backup JSON</button>
+            <button class="btn btn-outline-primary fw-semibold" id="btnBackupJSON">Backup </button>
             <label class="btn btn-outline-primary fw-semibold mb-0">
               Restaurar Backup
               <input id="restoreJSON" type="file" accept="application/json" hidden>
             </label>
+            <button class="btn btn-outline-danger fw-semibold" id="btnWipeDB">Limpar banco (TOTAL)</button>
           </div>
         </div>
 
         <div class="small mt-2">
-          • Backup é útil para mover dados de um celular para outro.
+          • Backup é útil para mover dados de um celular para outro.  
+          • "Limpar banco" apaga todas as atividades e fotos gravadas no dispositivo.
         </div>
 
         <hr class="hrSoft my-4"/>
@@ -1137,6 +1160,15 @@
 
             <button class="btn btn-success fw-semibold mt-3" id="btnSavePrefs">Salvar preferências</button>
           </div>
+
+          <div class="cardX" style="box-shadow:none;">
+            <div class="fw-bold">Limite de armazenamento (dica prática)</div>
+            <div class="small mt-2">
+              Fotos em alta resolução podem encher o armazenamento do navegador.
+              O app já tenta reduzir as imagens antes de salvar.
+              Se começar a falhar para salvar, exporte o Excel/PDF, faça backup e limpe o banco.
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1148,26 +1180,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-/* =========================================================
-   CONFIGURAÇÃO DO FIREBASE - COLOQUE SEUS DADOS AQUI
-   ========================================================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyBXXXXXXXXXX", // Substitua com seus dados
-  authDomain: "seu-projeto.firebaseapp.com",
-  projectId: "seu-projeto",
-  storageBucket: "seu-projeto.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
-};
-
-// Inicializar Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// Coleções
-const activitiesCollection = db.collection('activities');
-const prefsCollection = db.collection('preferences');
-
 /* =========================================================
    Dados dos equipamentos
 ========================================================= */
@@ -1343,7 +1355,7 @@ const equipmentData = {
 };
 
 /* =========================================================
-   Utilitários
+   Utilidades
 ========================================================= */
 const $ = (id)=>document.getElementById(id);
 
@@ -1354,37 +1366,30 @@ function toast(msg){
   clearTimeout(toast._tm);
   toast._tm = setTimeout(()=> t.style.display="none", 2800);
 }
-
 function uid(){
   return "A" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 }
-
 function generateOSNumber(){
   const year = new Date().getFullYear().toString().slice(-2);
   const random = Math.floor(Math.random() * 9000 + 1000);
   return `OS-${year}${random}`;
 }
-
 function todayISO(){
   const d=new Date();
   const pad=n=>String(n).padStart(2,"0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
-
 function fmtDate(iso){
   if(!iso) return "—";
   const [y,m,d]=iso.split("-");
   return `${d}/${m}/${y}`;
 }
-
 function norm(s){ return (s||"").toString().trim().toLowerCase(); }
-
 function overlaps(startA,endA,startB,endB){
   if(!startA || !endA || !startB || !endB) return true;
   const a1=new Date(startA), a2=new Date(endA), b1=new Date(startB), b2=new Date(endB);
   return a1<=b2 && b1<=a2;
 }
-
 function statusClass(st){
   const s=norm(st);
   if(s==="programada") return "st-programada";
@@ -1393,123 +1398,50 @@ function statusClass(st){
   if(s==="parcial") return "st-parcial";
   return "st-pendente";
 }
-
 function safeText(s){ return (s||"").toString().replace(/\s+/g," ").trim(); }
 
-/* =========================================================
-   Firebase Functions
-========================================================= */
-
-// Monitorar status da conexão
-firebase.firestore().enableNetwork()
-  .then(() => {
-    $("firebaseStatus").className = "firebase-status online";
-    $("firebaseStatus").textContent = "✅ Conectado ao Firebase";
-  })
-  .catch(() => {
-    $("firebaseStatus").className = "firebase-status offline";
-    $("firebaseStatus").textContent = "❌ Offline - dados podem estar desatualizados";
-  });
-
-// Salvar atividade
-async function putActivity(a) {
-  try {
-    const id = a.id || uid();
-    const docRef = activitiesCollection.doc(id);
-    await docRef.set({
-      ...a,
-      id: id,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-    return true;
-  } catch (error) {
-    console.error("Erro ao salvar:", error);
-    toast("Erro ao salvar no Firebase");
-    return false;
-  }
+function normKey(s){
+  return (s||"")
+    .toString()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase()
+    .replace(/[_\-]+/g," ")
+    .replace(/\s+/g," ")
+    .trim();
 }
 
-// Buscar uma atividade
-async function getActivity(id) {
-  try {
-    const doc = await activitiesCollection.doc(id).get();
-    return doc.exists ? doc.data() : null;
-  } catch (error) {
-    console.error("Erro ao buscar:", error);
-    return null;
-  }
-}
+function matchActivityByFilename(filename, activities){
+  const fn = normKey(filename.replace(/\.[^/.]+$/,""));
+  if(!fn) return null;
 
-// Buscar todas as atividades
-async function getAllActivities() {
-  try {
-    const snapshot = await activitiesCollection.get();
-    const activities = [];
-    snapshot.forEach(doc => {
-      activities.push(doc.data());
-    });
-    return activities.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
-  } catch (error) {
-    console.error("Erro ao buscar atividades:", error);
-    return [];
+  for(const a of activities){
+    const t = normKey(a.title || "");
+    if(t && fn.includes(t)) return a.id;
   }
-}
 
-// Deletar atividades
-async function deleteActivities(ids) {
-  try {
-    const batch = db.batch();
-    ids.forEach(id => {
-      batch.delete(activitiesCollection.doc(id));
-    });
-    await batch.commit();
-    return true;
-  } catch (error) {
-    console.error("Erro ao deletar:", error);
-    return false;
-  }
-}
+  const tokens = fn.split(" ").filter(Boolean);
+  const num = tokens.find(x=>/^\d{2,3}$/.test(x) || /^cv\d{2,3}$/.test(x) || /^0\d{2,3}$/.test(x));
+  const has = (w)=> tokens.includes(w);
+  const kind = has("calda") ? "calda" :
+               (has("acesso") ? "acesso" :
+               (has("contra") || has("peso") ? "contra peso" :
+               (has("laterais") ? "laterais" : "")));
 
-// Preferências
-async function setPref(key, value) {
-  try {
-    const docRef = prefsCollection.doc(key);
-    await docRef.set({
-      key,
-      value,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-    return true;
-  } catch (error) {
-    console.error("Erro ao salvar preferência:", error);
-    return false;
+  if(kind || num){
+    const needle = normKey(`${kind} ${num||""}`);
+    const hits = [];
+    for(const a of activities){
+      const t = normKey(a.title || "");
+      if(!t) continue;
+      if((kind && t.includes(kind)) || (!kind && num && t.includes(num.toString()))){
+        if(num && t.includes(num.toString().replace("cv",""))) hits.push(a);
+        else if(!num) hits.push(a);
+      }
+    }
+    if(hits.length===1) return hits[0].id;
   }
-}
 
-async function getPref(key) {
-  try {
-    const doc = await prefsCollection.doc(key).get();
-    return doc.exists ? doc.data().value : "";
-  } catch (error) {
-    console.error("Erro ao buscar preferência:", error);
-    return "";
-  }
-}
-
-// Wipe DB (reset total)
-async function wipeDB() {
-  try {
-    const activities = await getAllActivities();
-    const batch = db.batch();
-    activities.forEach(a => {
-      batch.delete(activitiesCollection.doc(a.id));
-    });
-    await batch.commit();
-    return true;
-  } catch (error) {
-    console.error("Erro ao limpar:", error);
-    return false;
-  }
+  return null;
 }
 
 /* =========================================================
@@ -1520,27 +1452,32 @@ function setupEquipmentSelection() {
   const equipmentOptions = $("equipmentGroupOptions");
   const selectedDisplay = $("selectedEquipmentDisplay");
   
+  // Configurar evento change da máquina
   machineSelect.addEventListener('change', function() {
     const machine = this.value;
     equipmentOptions.innerHTML = '';
     $("selectedEquipmentDisplay").textContent = 'Nenhum';
     $("newEquipment").value = '';
     
+    // Limpar seleções específicas
     document.querySelectorAll('.equipment-select-group').forEach(group => {
       group.classList.remove('active');
     });
     
+    // Limpar opções de equipamentos específicos
     document.querySelectorAll('.equipment-options:not(#equipmentGroupOptions)').forEach(opt => {
       opt.innerHTML = '';
     });
     
     if (['PC', 'TR', 'PT', 'TP', 'VIX'].includes(machine)) {
+      // Para equipamentos com lista específica
       const groupDiv = $(`equipment${machine}Group`);
       if (groupDiv) {
         groupDiv.classList.add('active');
         populateEquipmentOptions(machine, $(`${machine.toLowerCase()}Options`), 'new');
       }
     } else {
+      // Para outros tipos (Mini Máquina, Bobcat, etc.)
       const groups = ['Mini Máquina', 'Bobcat', 'Mini Retro', 'CR 950', 'TR-Esteira'];
       groups.forEach(group => {
         const btn = document.createElement('button');
@@ -1561,6 +1498,7 @@ function setupEquipmentSelection() {
     }
   });
   
+  // Popular opções de equipamentos específicos
   function populateEquipmentOptions(type, container, mode = 'new') {
     const equipments = equipmentData[type];
     container.innerHTML = '';
@@ -1608,27 +1546,32 @@ function setupEditEquipmentSelection() {
   const equipmentOptions = $("editEquipmentGroupOptions");
   const selectedDisplay = $("editSelectedEquipmentDisplay");
   
+  // Configurar evento change da máquina
   machineSelect.addEventListener('change', function() {
     const machine = this.value;
     equipmentOptions.innerHTML = '';
     $("editSelectedEquipmentDisplay").textContent = 'Nenhum';
     $("editEquipment").value = '';
     
+    // Limpar seleções específicas
     document.querySelectorAll('.equipment-select-group[id^="editEquipment"]').forEach(group => {
       group.classList.remove('active');
     });
     
+    // Limpar opções de equipamentos específicos
     document.querySelectorAll('.equipment-options[id^="edit"]').forEach(opt => {
       opt.innerHTML = '';
     });
     
     if (['PC', 'TR', 'PT', 'TP', 'VIX'].includes(machine)) {
+      // Para equipamentos com lista específica
       const groupDiv = $(`editEquipment${machine}Group`);
       if (groupDiv) {
         groupDiv.classList.add('active');
         populateEditEquipmentOptions(machine, $(`edit${machine}Options`));
       }
     } else {
+      // Para outros tipos (Mini Máquina, Bobcat, etc.)
       const groups = ['Mini Máquina', 'Bobcat', 'Mini Retro', 'CR 950', 'TR-Esteira'];
       groups.forEach(group => {
         const btn = document.createElement('button');
@@ -1649,6 +1592,7 @@ function setupEditEquipmentSelection() {
     }
   });
   
+  // Popular opções de equipamentos específicos para edição
   function populateEditEquipmentOptions(type, container) {
     const equipments = equipmentData[type];
     container.innerHTML = '';
@@ -1684,9 +1628,10 @@ function setupEditEquipmentSelection() {
 }
 
 /* =========================================================
-   Função para selecionar equipamento na edição
+   Função para selecionar equipamento na edição baseado no valor existente
 ========================================================= */
 function selectEquipmentInEditForm(machine, equipment) {
+  // Limpar seleções anteriores
   document.querySelectorAll('#editEquipmentGroupOptions .equipment-option').forEach(b => {
     b.classList.remove('selected');
   });
@@ -1694,12 +1639,14 @@ function selectEquipmentInEditForm(machine, equipment) {
     b.classList.remove('selected');
   });
   
+  // Esconder todos os grupos
   document.querySelectorAll('.equipment-select-group[id^="editEquipment"]').forEach(group => {
     group.classList.remove('active');
   });
   
   $("editEquipmentGroupOptions").innerHTML = '';
   
+  // Configurar baseado no tipo de máquina
   if (['PC', 'TR', 'PT', 'TP', 'VIX'].includes(machine)) {
     const groupDiv = $(`editEquipment${machine}Group`);
     if (groupDiv) {
@@ -1707,6 +1654,7 @@ function selectEquipmentInEditForm(machine, equipment) {
       populateEditEquipmentOptionsForEdit(machine, $(`edit${machine}Options`), equipment);
     }
   } else {
+    // Para outros tipos (Mini Máquina, Bobcat, etc.)
     const groups = ['Mini Máquina', 'Bobcat', 'Mini Retro', 'CR 950', 'TR-Esteira'];
     groups.forEach(group => {
       const btn = document.createElement('button');
@@ -1714,6 +1662,7 @@ function selectEquipmentInEditForm(machine, equipment) {
       btn.className = 'equipment-option';
       btn.textContent = group;
       
+      // Verificar se este é o equipamento selecionado
       const expectedEquipment = `${machine} - ${group}`;
       if (equipment === expectedEquipment) {
         btn.classList.add('selected');
@@ -1733,6 +1682,9 @@ function selectEquipmentInEditForm(machine, equipment) {
   }
 }
 
+/* =========================================================
+   Popular opções de equipamentos específicos para edição
+========================================================= */
 function populateEditEquipmentOptionsForEdit(type, container, selectedEquipment) {
   const equipments = equipmentData[type];
   container.innerHTML = '';
@@ -1768,6 +1720,98 @@ function populateEditEquipmentOptionsForEdit(type, container, selectedEquipment)
       $("editSelectedEquipmentDisplay").textContent = expectedEquipment;
     });
     container.appendChild(btn);
+  });
+}
+
+/* =========================================================
+   IndexedDB
+========================================================= */
+const DB_NAME="mini_maquinas_db_v6";
+const DB_VER=1;
+let db=null;
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = (e)=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains("activities")){
+        const store=db.createObjectStore("activities",{ keyPath:"id" });
+        store.createIndex("by_start","start");
+        store.createIndex("by_machine","machine");
+        store.createIndex("by_status","status");
+        store.createIndex("by_company","company");
+        store.createIndex("by_shift_start","shiftStart");
+      }
+      if(!db.objectStoreNames.contains("prefs")){
+        db.createObjectStore("prefs",{ keyPath:"key" });
+      }
+    };
+    req.onsuccess=()=>{ db=req.result; resolve(db); };
+    req.onerror=()=>reject(req.error);
+  });
+}
+
+function tx(store, mode="readonly"){
+  return db.transaction(store, mode).objectStore(store);
+}
+
+async function putActivity(a){
+  return new Promise((resolve,reject)=>{
+    const req=tx("activities","readwrite").put(a);
+    req.onsuccess=()=>resolve(true);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function getActivity(id){
+  return new Promise((resolve,reject)=>{
+    const req=tx("activities").get(id);
+    req.onsuccess=()=>resolve(req.result||null);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function getAllActivities(){
+  return new Promise((resolve,reject)=>{
+    const req=tx("activities").getAll();
+    req.onsuccess=()=>resolve(req.result||[]);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function deleteActivities(ids){
+  return new Promise((resolve,reject)=>{
+    const store=tx("activities","readwrite");
+    let left=ids.length;
+    if(left===0) return resolve(true);
+    ids.forEach(id=>{
+      const req=store.delete(id);
+      req.onsuccess=()=>{ left--; if(left===0) resolve(true); };
+      req.onerror=()=>reject(req.error);
+    });
+  });
+}
+async function wipeDB(){
+  db.close();
+  await new Promise((resolve,reject)=>{
+    const del=indexedDB.deleteDatabase(DB_NAME);
+    del.onsuccess=()=>resolve(true);
+    del.onerror=()=>reject(del.error);
+  });
+  await openDB();
+  await seedInitialWeekIfEmpty();
+}
+
+async function setPref(key,value){
+  return new Promise((resolve,reject)=>{
+    const req=tx("prefs","readwrite").put({key,value});
+    req.onsuccess=()=>resolve(true);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function getPref(key){
+  return new Promise((resolve,reject)=>{
+    const req=tx("prefs").get(key);
+    req.onsuccess=()=>resolve(req.result?.value ?? "");
+    req.onerror=()=>reject(req.error);
   });
 }
 
@@ -1877,6 +1921,7 @@ $("btnNewClear").addEventListener("click", ()=>{
   $("motivoNaoConclusaoGroup").style.display = 'none';
 });
 
+// Mostrar/esconder campo de motivo baseado no status
 $("newStatus").addEventListener("change", function() {
   const status = this.value;
   if (status === "Parcial" || status === "Pendente") {
@@ -1952,6 +1997,122 @@ $("formNew").addEventListener("submit", async (e)=>{
 });
 
 /* =========================================================
+   Importação em lote
+========================================================= */
+let pendingNewImportFiles = [];
+
+function inferTitleFromFileName(name){
+  const base = (name||"").replace(/\.[a-z0-9]+$/i,"").trim();
+  return base || "Nova atividade";
+}
+
+function inferBeforeAfter(mode, fileName){
+  if(mode==="before") return "before";
+  if(mode==="after") return "after";
+  const n = norm(fileName||"");
+  if(n.includes("depois") || n.includes("after") || n.includes("pos") || n.includes("final")) return "after";
+  if(n.includes("antes") || n.includes("before") || n.includes("inicio") || n.includes("inicial")) return "before";
+  return "before";
+}
+
+function bestMatchActivityByTitle(list, fileBase){
+  const n = norm(fileBase);
+  let best = null;
+  let bestScore = 0;
+  for(const a of list){
+    const t = norm(a.title||"");
+    if(!t) continue;
+    let score = 0;
+    if(n===t) score = 1000;
+    else if(n.includes(t) && t.length>2) score = 100 + t.length;
+    else if(t.includes(n) && n.length>2) score = 90 + n.length;
+    if(score>bestScore){ bestScore=score; best=a; }
+  }
+  return best;
+}
+
+async function processNewImport(){
+  const files = pendingNewImportFiles;
+  if(!files.length){ toast("Selecione as fotos para importar."); return; }
+
+  const all = await getAllActivities();
+  const mode = $("newImportClass").value || "auto";
+  const autoCreate = ($("newImportAutoCreate").value||"yes")==="yes";
+
+  let created=0, attached=0, skipped=0;
+
+  for(const f of files){
+    const titleGuess = inferTitleFromFileName(f.name);
+    let target = bestMatchActivityByTitle(all, titleGuess);
+
+    if(!target && autoCreate){
+      const a = {
+        id: uid(),
+        osNumber: generateOSNumber(),
+        machine: $("newMachine").value || "Mini Máquina",
+        equipment: $("newEquipment").value || "MM-01",
+        title: titleGuess,
+        location: $("newLocation").value || "",
+        desc: $("newDesc").value || "",
+        planner: $("newPlanner").value || "",
+        company: $("newCompany").value || "",
+        responsible: $("newResponsible").value || "",
+        priority: $("newPriority").value || "Média",
+        start: $("newStart").value || todayISO(),
+        end: $("newEnd").value || todayISO(),
+        status: $("newStatus").value || "Programada",
+        shiftStart: $("newShiftStart").value || "",
+        shiftEnd: $("newShiftEnd").value || "",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        photosBefore: [],
+        photosAfter: []
+      };
+      await putActivity(a);
+      all.push(a);
+      target = a;
+      created++;
+    }
+
+    if(!target){
+      skipped++;
+      continue;
+    }
+
+    const side = inferBeforeAfter(mode, f.name);
+    const dataUrl = await fileToDataURL(f);
+    const compressed = await compressDataURL(dataUrl);
+    const photo = { id: "P"+uid(), name: f.name, dataUrl: compressed, ts: Date.now() };
+
+    if(side==="after") target.photosAfter.push(photo);
+    else target.photosBefore.push(photo);
+
+    target.updatedAt = Date.now();
+    await putActivity(target);
+    attached++;
+  }
+
+  pendingNewImportFiles = [];
+  $("newImportPhotos").value = "";
+  $("importHint").textContent = `Importação concluída: ${attached} encaixadas • ${created} atividades novas • ${skipped} sem encaixe.`;
+
+  await refreshTable();
+  await loadPhotoSelect();
+  await refreshDashboard();
+  await calcularAderencia();
+  toast(`Importado: ${attached} fotos.`);
+}
+
+// Configurar eventos da importação
+$("newImportPhotos").addEventListener("change", (e)=>{
+  pendingNewImportFiles = Array.from(e.target.files||[]);
+  const n = pendingNewImportFiles.length;
+  $("importHint").textContent = n ? (n + " arquivo(s) selecionado(s) para importar.") : "Selecione as fotos e clique em Importar.";
+});
+
+$("btnProcessImport").addEventListener("click", processNewImport);
+
+/* =========================================================
    Lista (Tabela)
 ========================================================= */
 let currentList = [];
@@ -1964,7 +2125,6 @@ $("btnApplyFilters").addEventListener("click", async ()=>{
   await calcularAderencia();
   toast("Filtros aplicados.");
 });
-
 $("btnClearFilters").addEventListener("click", async ()=>{
   $("fStart").value=""; $("fEnd").value="";
   $("fMachine").value=""; $("fStatus").value="";
@@ -1975,7 +2135,6 @@ $("btnClearFilters").addEventListener("click", async ()=>{
   await calcularAderencia();
   toast("Filtros limpos.");
 });
-
 $("btnRefresh").addEventListener("click", async ()=>{
   readFiltersUI();
   await refreshTable();
@@ -2122,20 +2281,24 @@ async function openEdit(id){
   $("editShiftStart").value = a.shiftStart || "";
   $("editShiftEnd").value = a.shiftEnd || "";
   
+  // Mostrar/esconder campo de motivo
   if (a.status === "Parcial" || a.status === "Pendente") {
     $("editMotivoNaoConclusaoGroup").style.display = 'grid';
   } else {
     $("editMotivoNaoConclusaoGroup").style.display = 'none';
   }
   
+  // Configurar display do equipamento selecionado
   $("editSelectedEquipmentDisplay").textContent = a.equipment || "Nenhum";
   
+  // Configurar o seletor de equipamentos dinamicamente
   selectEquipmentInEditForm(a.machine, a.equipment);
 
   const modal = new bootstrap.Modal($("modalEdit"));
   modal.show();
 }
 
+// Mostrar/esconder campo de motivo na edição
 $("editStatus").addEventListener("change", function() {
   const status = this.value;
   if (status === "Parcial" || status === "Pendente") {
@@ -2224,6 +2387,7 @@ async function loadPhotoSelect(){
   for(const a of sorted){
     const o=document.createElement("option");
     o.value=a.id;
+    // Melhorado para mostrar o título da atividade primeiro
     o.textContent = `${a.osNumber || "OS"} - ${a.title || "Sem título"} • ${a.machine} • ${a.equipment} (${fmtDate(a.start)}→${fmtDate(a.end)})`;
     sel.appendChild(o);
   }
@@ -2318,11 +2482,48 @@ async function addPickedFiles(fileList){
 
   if(!photoWork.id){
     const all = await getAllActivities();
+    const routed = [];
+    const unrouted = [];
+
     toast("Processando fotos...");
     const dataURLs = await filesToCompressedDataURLs(files);
-    photoWork.photos = [...photoWork.photos, ...dataURLs];
-    renderThumbs();
-    toast(`+${dataURLs.length} foto(s) carregada(s).`);
+
+    for(let i=0;i<files.length;i++){
+      const f = files[i];
+      const name = (f.name||"").trim();
+      const id = matchActivityByFilename(name, all);
+      if(id){
+        routed.push({id, photo:dataURLs[i], name});
+      }else{
+        unrouted.push({photo:dataURLs[i], name});
+      }
+    }
+
+    const grouped = new Map();
+    for(const r of routed){
+      if(!grouped.has(r.id)) grouped.set(r.id, []);
+      grouped.get(r.id).push(r.photo);
+    }
+    for(const [id, photos] of grouped.entries()){
+      const a = await getActivity(id);
+      if(!a) continue;
+      if(photoWork.mode==="before") a.photosBefore = [...(a.photosBefore||[]), ...photos];
+      else a.photosAfter = [...(a.photosAfter||[]), ...photos];
+      a.updatedAt = Date.now();
+      await putActivity(a);
+    }
+
+    if(unrouted.length){
+      photoWork.photos = [...photoWork.photos, ...unrouted.map(u=>u.photo)];
+      renderThumbs();
+      toast(`Roteadas: ${routed.length}. Sem encaixe: ${unrouted.length} (selecione uma atividade e salve).`);
+    }else{
+      toast(`Roteadas: ${routed.length}.`);
+    }
+
+    await refreshTable();
+    await refreshDashboard();
+    await calcularAderencia();
     return;
   }
 
@@ -2367,6 +2568,7 @@ let charts = {
   status:null, 
   machine:null, 
   company:null, 
+  daily:null, 
   shiftStart:null, 
   timeline:null,
   motivos:null,
@@ -2402,10 +2604,12 @@ async function refreshDashboard(){
   $("kpiPending").textContent = list.filter(a=>norm(a.status)!=="concluída" && norm(a.status)!=="concluida").length;
   $("dashWeekLabel").textContent = dateRangeLabel();
 
+  // Status
   const st = countBy(list, a=>a.status||"Pendente");
   const stLabels = st.map(x=>x[0]);
   const stVals = st.map(x=>x[1]);
 
+  // Motivos de não conclusão
   const motivosMap = new Map();
   for(const a of list){
     if (a.status === "Parcial" || a.status === "Pendente") {
@@ -2417,6 +2621,7 @@ async function refreshDashboard(){
   const motivosLabels = motivos.map(x=>x[0]);
   const motivosVals = motivos.map(x=>x[1]);
 
+  // Machine com equipamento
   const mcMap = new Map();
   for(const a of list){
     const key = a.equipment ? `${a.machine} (${a.equipment})` : a.machine;
@@ -2426,14 +2631,28 @@ async function refreshDashboard(){
   const mcLabels = mc.map(x=>x[0]);
   const mcVals = mc.map(x=>x[1]);
 
+  // Company (top 8)
   const co = countBy(list, a=>a.company||"(vazio)").slice(0,8);
   const coLabels = co.map(x=>x[0]);
   const coVals = co.map(x=>x[1]);
 
+  // Daily evolution
+  const dailyMap=new Map();
+  for(const a of list){
+    const d=a.start || "";
+    if(!d) continue;
+    dailyMap.set(d,(dailyMap.get(d)||0)+1);
+  }
+  const daily = Array.from(dailyMap.entries()).sort((a,b)=>a[0].localeCompare(b[0]));
+  const dLabels = daily.map(x=>fmtDate(x[0]));
+  const dVals = daily.map(x=>x[1]);
+
+  // Turno Início
   const sh = countBy(list, a=>a.shiftStart||"—");
   const shLabels = sh.map(x=>x[0]);
   const shVals = sh.map(x=>x[1]);
 
+  // Timeline
   const rangeS = (filters.start || list.map(a=>a.start).filter(Boolean).sort()[0] || todayISO());
   const rangeE = (filters.end || list.map(a=>a.end).filter(Boolean).sort().slice(-1)[0] || todayISO());
   const days = [];
@@ -2460,8 +2679,10 @@ async function refreshDashboard(){
       return { y, x:[x0, x1] };
     });
 
+  // Destruir gráficos anteriores
   Object.values(charts).forEach(c=> destroyChart(c));
 
+  // Criar novos gráficos
   if(stLabels.length > 0){
     charts.status = new Chart($("chartStatus"), {
       type:"bar",
@@ -2506,7 +2727,12 @@ async function refreshDashboard(){
         plugins: {
           legend: {
             position: 'right',
-            labels: { boxWidth: 12, font: { size: 10 } }
+            labels: {
+              boxWidth: 12,
+              font: {
+                size: 10
+              }
+            }
           }
         }
       }
@@ -2517,6 +2743,14 @@ async function refreshDashboard(){
     charts.company = new Chart($("chartCompany"), {
       type:"bar",
       data:{ labels: coLabels, datasets:[{ label:"Qtd", data: coVals, backgroundColor:"#f08c00" }] },
+      options:{ responsive:true, plugins:{ legend:{ display:false } } }
+    });
+  }
+
+  if(dLabels.length > 0){
+    charts.daily = new Chart($("chartDaily"), {
+      type:"line",
+      data:{ labels: dLabels, datasets:[{ label:"Atividades", data: dVals, tension:0.25, borderColor:"#2f9e44", backgroundColor:"rgba(47,158,68,0.1)" }] },
       options:{ responsive:true, plugins:{ legend:{ display:false } } }
     });
   }
@@ -2573,7 +2807,9 @@ async function refreshDashboard(){
               }
             }
           },
-          y:{ ticks:{ autoSkip:false } }
+          y:{
+            ticks:{ autoSkip:false }
+          }
         }
       }
     });
@@ -2581,7 +2817,7 @@ async function refreshDashboard(){
 }
 
 /* =========================================================
-   Exportar Dashboard para PDF
+   Exportar Dashboard para PDF (CORRIGIDO)
 ========================================================= */
 async function exportDashboardPDF(){
   try{
@@ -2612,6 +2848,7 @@ async function exportDashboardPDF(){
     pdf.setFontSize(10);
     pdf.text(`Período: ${dateRangeLabel()} • Gerado em: ${new Date().toLocaleString("pt-BR")}`, margin, margin+4);
 
+    // Aguardar um momento para os gráficos renderizarem
     await new Promise(resolve => setTimeout(resolve, 500));
 
     for(let i=0; i<items.length; i++){
@@ -2628,10 +2865,13 @@ async function exportDashboardPDF(){
       if(!canvas) continue;
       
       try {
+        // Capturar o canvas como imagem
         const imgData = canvas.toDataURL("image/png", 1.0);
         const padTop = 7;
         const imgW = cellW;
         const imgH = cellH - padTop;
+        
+        // Adicionar a imagem ao PDF
         pdf.addImage(imgData, "PNG", x0, y0+padTop, imgW, imgH);
       } catch(err) {
         console.warn("Não foi possível capturar gráfico", it.id, err);
@@ -2679,6 +2919,7 @@ async function calcularAderencia(){
   const parciais = list.filter(a => norm(a.status) === "parcial").length;
   const taxaConclusao = totalProgramadas > 0 ? Math.round((concluidas / totalProgramadas) * 100) : 0;
   
+  // Calcular atrasos (atividades não concluídas com data final passada)
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
   const atrasos = list.filter(a => {
@@ -2689,11 +2930,13 @@ async function calcularAderencia(){
     return dataFim < hoje;
   }).length;
   
+  // Calcular atividades com falta de máquina
   const faltamMaquina = list.filter(a => 
     (a.status === "Parcial" || a.status === "Pendente") && 
     a.motivo === "Falta de máquina"
   ).length;
   
+  // Atualizar UI
   $("aderenciaGeral").textContent = `${taxaConclusao}%`;
   $("progressBarFill").style.width = `${taxaConclusao}%`;
   $("totalProgramadas").textContent = totalProgramadas;
@@ -2703,10 +2946,12 @@ async function calcularAderencia(){
   $("faltamMaquina").textContent = faltamMaquina;
   $("parciais").textContent = parciais;
   
+  // Calcular por tipo de máquina
   const maquinasMap = new Map();
   const empresasMap = new Map();
   
   for(const a of list){
+    // Por máquina
     if(!maquinasMap.has(a.machine)){
       maquinasMap.set(a.machine, {total:0, concluidas:0});
     }
@@ -2716,6 +2961,7 @@ async function calcularAderencia(){
       maquina.concluidas++;
     }
     
+    // Por empresa
     if(a.company){
       if(!empresasMap.has(a.company)){
         empresasMap.set(a.company, {total:0, concluidas:0});
@@ -2728,6 +2974,7 @@ async function calcularAderencia(){
     }
   }
   
+  // Gráfico por máquina
   const maquinasArray = Array.from(maquinasMap.entries());
   if(maquinasArray.length > 0){
     const maquinaLabels = maquinasArray.map(m => m[0]);
@@ -2754,14 +3001,23 @@ async function calcularAderencia(){
           y: {
             beginAtZero: true,
             max: 100,
-            title: { display: true, text: 'Taxa (%)' }
+            title: {
+              display: true,
+              text: 'Taxa (%)'
+            }
           },
-          x: { title: { display: true, text: 'Tipo de Máquina' } }
+          x: {
+            title: {
+              display: true,
+              text: 'Tipo de Máquina'
+            }
+          }
         }
       }
     });
   }
   
+  // Gráfico por empresa (top 10)
   const empresasArray = Array.from(empresasMap.entries()).slice(0, 10);
   if(empresasArray.length > 0){
     const empresaLabels = empresasArray.map(e => e[0]);
@@ -2788,14 +3044,23 @@ async function calcularAderencia(){
           y: {
             beginAtZero: true,
             max: 100,
-            title: { display: true, text: 'Taxa (%)' }
+            title: {
+              display: true,
+              text: 'Taxa (%)'
+            }
           },
-          x: { title: { display: true, text: 'Empresa' } }
+          x: {
+            title: {
+              display: true,
+              text: 'Empresa'
+            }
+          }
         }
       }
     });
   }
   
+  // Tabela por equipamento
   const equipamentosMap = new Map();
   for(const a of list){
     const equipamento = a.equipment || "Não informado";
@@ -2837,11 +3102,14 @@ async function calcularAderencia(){
 }
 
 /* =========================================================
-   Exportar Aderência para PDF
+   Exportar Aderência para PDF - VERSÃO CORRIGIDA
+   Agora captura exatamente o mesmo layout visual da tela
 ========================================================= */
 async function exportAderenciaPDF(){
   try{
     await calcularAderencia();
+    
+    // Aguardar renderização dos gráficos
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const { jsPDF } = window.jspdf;
@@ -2850,6 +3118,7 @@ async function exportAderenciaPDF(){
     const pageH = pdf.internal.pageSize.getHeight();
     const margin = 10;
     
+    // Título do documento
     pdf.setFontSize(16);
     pdf.text("Relatório de Aderência • Mini Máquinas", margin, margin);
     pdf.setFontSize(10);
@@ -2857,14 +3126,16 @@ async function exportAderenciaPDF(){
     
     let y = margin + 15;
     
+    // 1. Primeiro, capturar a barra de progresso e KPIs - o container inteiro da aba de aderência
     const aderenciaSection = $("tab-aderencia");
     if (aderenciaSection) {
+      // Clonar a seção para não afetar a original
       const cloneSection = aderenciaSection.cloneNode(true);
       cloneSection.style.display = "block";
       cloneSection.style.position = "absolute";
       cloneSection.style.left = "-9999px";
       cloneSection.style.top = "0";
-      cloneSection.style.width = "800px";
+      cloneSection.style.width = "800px"; // Largura fixa para consistência
       cloneSection.style.background = "white";
       document.body.appendChild(cloneSection);
       
@@ -2889,56 +3160,108 @@ async function exportAderenciaPDF(){
       }
     }
     
+    // Se a captura completa falhar, fazer fallback capturando partes individuais
     if (y <= margin + 20) {
+      // 2. Capturar a barra de progresso
       const progressContainer = document.querySelector('.progress-container');
       if (progressContainer) {
-        const canvas = await html2canvas(progressContainer, { scale: 2, backgroundColor: "#ffffff" });
+        const canvas = await html2canvas(progressContainer, { 
+          scale: 2, 
+          backgroundColor: "#ffffff",
+          logging: false,
+          allowTaint: false,
+          useCORS: true
+        });
+        
         const imgData = canvas.toDataURL("image/jpeg", 0.95);
         const imgW = pageW - margin*2;
         const imgH = (canvas.height * imgW) / canvas.width;
+        
         pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
         y += imgH + 8;
       }
       
+      // 3. Capturar a grid de cards de aderência
       const aderenciaGrid = document.querySelector('.aderencia-grid');
       if (aderenciaGrid) {
-        const canvas = await html2canvas(aderenciaGrid, { scale: 2, backgroundColor: "#ffffff" });
+        const canvas = await html2canvas(aderenciaGrid, { 
+          scale: 2, 
+          backgroundColor: "#ffffff",
+          logging: false,
+          allowTaint: false,
+          useCORS: true
+        });
+        
         const imgData = canvas.toDataURL("image/jpeg", 0.95);
         const imgW = pageW - margin*2;
         const imgH = (canvas.height * imgW) / canvas.width;
-        if (y + imgH > pageH - 20) { pdf.addPage(); y = margin; }
+        
+        // Verificar se cabe na página, senão criar nova página
+        if (y + imgH > pageH - 20) {
+          pdf.addPage();
+          y = margin;
+        }
+        
         pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
         y += imgH + 8;
       }
       
+      // 4. Capturar os gráficos de conclusão
       const chartsGrid = document.querySelector('.grid2.mt-4');
       if (chartsGrid) {
-        const canvas = await html2canvas(chartsGrid, { scale: 2, backgroundColor: "#ffffff" });
+        const canvas = await html2canvas(chartsGrid, { 
+          scale: 2, 
+          backgroundColor: "#ffffff",
+          logging: false,
+          allowTaint: false,
+          useCORS: true
+        });
+        
         const imgData = canvas.toDataURL("image/jpeg", 0.95);
         const imgW = pageW - margin*2;
         const imgH = (canvas.height * imgW) / canvas.width;
-        if (y + imgH > pageH - 20) { pdf.addPage(); y = margin; }
+        
+        // Verificar se cabe na página
+        if (y + imgH > pageH - 20) {
+          pdf.addPage();
+          y = margin;
+        }
+        
         pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
         y += imgH + 8;
       }
       
+      // 5. Capturar a tabela de detalhamento por equipamento
       const tableCard = document.querySelector('.cardX.mt-4');
       if (tableCard) {
-        const canvas = await html2canvas(tableCard, { scale: 2, backgroundColor: "#ffffff" });
+        const canvas = await html2canvas(tableCard, { 
+          scale: 2, 
+          backgroundColor: "#ffffff",
+          logging: false,
+          allowTaint: false,
+          useCORS: true
+        });
+        
         const imgData = canvas.toDataURL("image/jpeg", 0.95);
         const imgW = pageW - margin*2;
         const imgH = (canvas.height * imgW) / canvas.width;
-        if (y + imgH > pageH - 20) { pdf.addPage(); y = margin; }
+        
+        // Verificar se precisa de nova página
+        if (y + imgH > pageH - 20) {
+          pdf.addPage();
+          y = margin;
+        }
+        
         pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
       }
     }
     
     pdf.save(`Aderencia_MiniMaquinas_${todayISO()}.pdf`);
-    toast("Relatório de Aderência exportado!");
+    toast("Relatório de Aderência exportado com layout completo!");
     
   }catch(err){
     console.error("Erro ao exportar aderência:", err);
-    toast("Falha ao exportar o relatório de Aderência.");
+    toast("Falha ao exportar o relatório de Aderência. Tente novamente.");
   }
 }
 
@@ -3047,6 +3370,7 @@ $("btnBuildReport").addEventListener("click", async ()=>{
   const all = await getAllActivities();
   readFiltersUI();
   const filtered = applyFilters(all).sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
+  // Se houver seleção na lista, monta relatório apenas das marcadas.
   let list = filtered;
   if(typeof selectedIds !== "undefined" && selectedIds && selectedIds.size>0){
     list = filtered.filter(a=> selectedIds.has(a.id));
@@ -3134,6 +3458,7 @@ async function renderReportToPDFBlob(){
   const imgW = pageW;
   const imgH = canvas.height * (imgW / canvas.width);
 
+  let y = 0;
   if(imgH <= pageH){
     pdf.addImage(imgData, "JPEG", 0, 0, imgW, imgH);
   } else {
@@ -3320,6 +3645,7 @@ $("restoreJSON").addEventListener("change", async (e)=>{
     a.photosBefore = a.photosBefore || [];
     a.photosAfter = a.photosAfter || [];
     a.updatedAt = a.updatedAt || Date.now();
+    // Garantir compatibilidade com versões anteriores
     if(a.shift && !a.shiftStart) a.shiftStart = a.shift;
     if(!a.shiftEnd) a.shiftEnd = "";
     if(!a.osNumber) a.osNumber = generateOSNumber();
@@ -3375,8 +3701,14 @@ async function loadPrefsToUI(){
 }
 
 async function seedInitialWeekIfEmpty(){
+  const seeded = await getPref("seeded_initial_week_v6");
+  if(seeded==="1") return;
+
   const all = await getAllActivities();
-  if(all.length>0) return;
+  if(all.length>0){
+    await setPref("seeded_initial_week_v6","1");
+    return;
+  }
 
   const titles = [
     "Calda da CV 72",
@@ -3437,6 +3769,8 @@ async function seedInitialWeekIfEmpty(){
     };
     await putActivity(a);
   }
+
+  await setPref("seeded_initial_week_v6","1");
   toast("Semana inicial carregada. Ajuste os detalhes e anexe as fotos.");
 }
 
@@ -3444,6 +3778,7 @@ async function seedInitialWeekIfEmpty(){
    Inicializar App
 ========================================================= */
 (async function init(){
+  await openDB();
   setupEquipmentSelection();
   setupEditEquipmentSelection();
   await loadPrefsToUI();
@@ -3452,8 +3787,9 @@ async function seedInitialWeekIfEmpty(){
   await loadPhotoSelect();
   await refreshDashboard();
   await calcularAderencia();
-  toast("App pronto. Dados compartilhados via Firebase!");
+  toast("App pronto.");
 })();
 </script>
 </body>
 </html>
+
