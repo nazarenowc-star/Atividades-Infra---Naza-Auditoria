@@ -18,7 +18,7 @@
   <!-- Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <!-- Firebase (versão compatível com script) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
@@ -1152,12 +1152,12 @@
    CONFIGURAÇÃO DO FIREBASE - COLOQUE SEUS DADOS AQUI
    ========================================================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyDdCf-WvW7bNlxJq9gQPIANlxOO-D5sXHo",
-  authDomain: "atividades-infra---naza-audit.firebaseapp.com",
-  projectId: "atividades-infra---naza-audit",
-  storageBucket: "atividades-infra---naza-audit.firebasestorage.app",
-  messagingSenderId: "730232324649",
-  appId: "1:730232324649:web:093e4f05d61fc4bf375238"
+  apiKey: "AIzaSyBXXXXXXXXXX", // Substitua com seus dados
+  authDomain: "seu-projeto.firebaseapp.com",
+  projectId: "seu-projeto",
+  storageBucket: "seu-projeto.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef"
 };
 
 // Inicializar Firebase
@@ -1168,10 +1168,2292 @@ const db = firebase.firestore();
 const activitiesCollection = db.collection('activities');
 const prefsCollection = db.collection('preferences');
 
-// ... (restante do código JavaScript permanece igual ao anterior)
-// Por questões de espaço, mantive apenas a configuração do Firebase
-// O código JavaScript completo está no final da mensagem anterior
+/* =========================================================
+   Dados dos equipamentos
+========================================================= */
+const equipmentData = {
+  PC: [
+    {id:"PC01",grupo:"950H",infra:true},
+    {id:"PC02",grupo:"950H",infra:true},
+    {id:"PC03",grupo:"950H",infra:true}
+  ],
+  TR: [
+    {id:"TR26",grupo:"D10T",infra:true},
+    {id:"TR27",grupo:"D10T",infra:true},
+    {id:"TR28",grupo:"D10T",infra:true},
+    {id:"TR29",grupo:"D10T"},
+    {id:"TR30",grupo:"D10T"},
+    {id:"TR31",grupo:"D10T",infra:true},
+    {id:"TR32",grupo:"D10T"}
+  ],
+  PT: [
+    {id:"PT09",grupo:"16M",infra:true},
+    {id:"PT10",grupo:"16M",infra:true},
+    {id:"PT11",grupo:"16M"}
+  ],
+  TP: [
+    {id:"TP01",grupo:"834K",infra:true},
+    {id:"TP02",grupo:"834K",infra:true}
+  ],
+  VIX: [
+    {tag:"CB-519",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-520",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-523",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-524",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-583",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-584",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-585",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-586",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-587",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-591",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-592",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-593",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-594",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-595",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-596",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-597",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-598",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-599",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-600",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-601",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-602",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-603",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-604",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-605",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-606",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-607",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-608",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-609",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-621",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-622",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-623",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-624",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-625",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-626",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-627",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-628",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CB-632",categoria:"Caminhão Báscula 8x4",descricao:"Caminhão Báscula 8x4"},
+    {tag:"CB-633",categoria:"Caminhão Báscula",descricao:"Caminhão Báscula"},
+    {tag:"CG-821",categoria:"Caminhão Guincho",descricao:"Caminhão Guincho"},
+    {tag:"CL-701",categoria:"Caminhão Lubrificante",descricao:"Caminhão Lubrificante"},
+    {tag:"CL-702",categoria:"Caminhão Lubrificante",descricao:"Caminhão Lubrificante"},
+    {tag:"CL-703",categoria:"Caminhão Lubrificante",descricao:"Caminhão Lubrificante"},
+    {tag:"CL-704",categoria:"Caminhão Lubrificante",descricao:"Caminhão Lubrificante"},
+    {tag:"CL-705",categoria:"Caminhão Lubrificante",descricao:"Caminhão Lubrificante"},
+    {tag:"CM-802",categoria:"Cavalo Mecânico",descricao:"Cavalo Mecânico"},
+    {tag:"CP-531",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-611",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-613",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-630",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-631",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-632",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-633",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-634",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-635",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-640",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-641",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-643",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-644",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-645",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-647",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-648",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-649",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-652",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-653",categoria:"Caminhão Pipa 30 K/L",descricao:"Caminhão Pipa 30 K/L"},
+    {tag:"CP-654",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-655",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-656",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-657",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-658",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CP-659",categoria:"Caminhão Pipa 20 K/L",descricao:"Caminhão Pipa 20 K/L"},
+    {tag:"CR-213",categoria:"Pá Carregadeira",descricao:"Pá Carregadeira"},
+    {tag:"CR-215",categoria:"Pá Carregadeira",descricao:"Pá Carregadeira"},
+    {tag:"CR-216",categoria:"Pá carregadeira",descricao:"Pá carregadeira"},
+    {tag:"CS-303",categoria:"Compactador de solo 20T",descricao:"Compactador de solo 20T"},
+    {tag:"CS-304",categoria:"Compactador de solo 20T",descricao:"Compactador de solo 20T"},
+    {tag:"CS-311",categoria:"Compactador de solo 12T",descricao:"Compactador de solo 12T"},
+    {tag:"CS-312",categoria:"Compactador de solo 12T",descricao:"Compactador de solo 12T"},
+    {tag:"ES-117",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-118",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-119",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-120",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-150",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-151",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-152",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-153",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-154",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-155",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-156",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-157",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-158",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-159",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-160",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-161",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-162",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-163",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-164",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-168",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-169",categoria:"Escavadeira 336",descricao:"Escavadeira 336"},
+    {tag:"ES-170",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-171",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-172",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-173",categoria:"Rompedor",descricao:"Rompedor"},
+    {tag:"ES-176",categoria:"Escavadeira 336",descricao:"Escavadeira 336"},
+    {tag:"ES-177",categoria:"Escavadeira Long Reach",descricao:"Escavadeira Long Reach"},
+    {tag:"ES-182",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-183",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-184",categoria:"Escavadeira 336",descricao:"Escavadeira 336"},
+    {tag:"ES-185",categoria:"Escavadeira Sany 500",descricao:"Escavadeira Sany 500"},
+    {tag:"ES-186",categoria:"Escavadeira Sany 500",descricao:"Escavadeira Sany 500"},
+    {tag:"ES-187",categoria:"Miniescavadeira",descricao:"Miniescavadeira"},
+    {tag:"ES-188",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-189",categoria:"Escavadeira 320",descricao:"Escavadeira 320"},
+    {tag:"ES-190",categoria:"Escavadeira Sany 500",descricao:"Escavadeira Sany 500"},
+    {tag:"MN-908",categoria:"Motoniveladora",descricao:"Motoniveladora"},
+    {tag:"MN-915",categoria:"Motoniveladora",descricao:"Motoniveladora"},
+    {tag:"MN-916",categoria:"Motoniveladora",descricao:"Motoniveladora"},
+    {tag:"MN-922",categoria:"Motoniveladora",descricao:"Motoniveladora"},
+    {tag:"MN-923",categoria:"Motoniveladora",descricao:"Motoniveladora"},
+    {tag:"MN-924",categoria:"Motoniveladora",descricao:"Motoniveladora"},
+    {tag:"MN-925",categoria:"Motoniveladora",descricao:"Motoniveladora"},
+    {tag:"RE-914",categoria:"Retroescavadeira",descricao:"Retroescavadeira"},
+    {tag:"RE-915",categoria:"Retroescavadeira",descricao:"Retroescavadeira"},
+    {tag:"RE-916",categoria:"Retroescavadeira",descricao:"Retroescavadeira"},
+    {tag:"RE-941",categoria:"Retroescavadeira",descricao:"Retroescavadeira"},
+    {tag:"RE-943",categoria:"Retroescavadeira",descricao:"Retroescavadeira"},
+    {tag:"RP-300",categoria:"Reboque Prancha",descricao:"Reboque Prancha"},
+    {tag:"SR-811",categoria:"Reboque Prancha",descricao:"Reboque Prancha"},
+    {tag:"TA-730",categoria:"Tanque de Abastecimento",descricao:"Tanque de Abastecimento"},
+    {tag:"TA-740",categoria:"Tanque de Abastecimento",descricao:"Tanque de Abastecimento"},
+    {tag:"TA-750",categoria:"Tanque de Abastecimento",descricao:"Tanque de Abastecimento"},
+    {tag:"TA-760",categoria:"Tanque de Abastecimento",descricao:"Tanque de Abastecimento"},
+    {tag:"TA-770",categoria:"Tanque de Abastecimento",descricao:"Tanque de Abastecimento"},
+    {tag:"TE-430",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TE-431",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TE-432",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TE-433",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TE-434",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TE-435",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TE-438",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TE-439",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TE-440",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TE-441",categoria:"Trator de Esteira",descricao:"Trator de Esteira"},
+    {tag:"TR-101",categoria:"Trator Agrícola",descricao:"Trator Agrícola"}
+  ]
+};
 
+/* =========================================================
+   Utilitários
+========================================================= */
+const $ = (id)=>document.getElementById(id);
+
+function toast(msg){
+  const t = $("toastX");
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(toast._tm);
+  toast._tm = setTimeout(()=> t.style.display="none", 2800);
+}
+
+function uid(){
+  return "A" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+function generateOSNumber(){
+  const year = new Date().getFullYear().toString().slice(-2);
+  const random = Math.floor(Math.random() * 9000 + 1000);
+  return `OS-${year}${random}`;
+}
+
+function todayISO(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+function fmtDate(iso){
+  if(!iso) return "—";
+  const [y,m,d]=iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function norm(s){ return (s||"").toString().trim().toLowerCase(); }
+
+function overlaps(startA,endA,startB,endB){
+  if(!startA || !endA || !startB || !endB) return true;
+  const a1=new Date(startA), a2=new Date(endA), b1=new Date(startB), b2=new Date(endB);
+  return a1<=b2 && b1<=a2;
+}
+
+function statusClass(st){
+  const s=norm(st);
+  if(s==="programada") return "st-programada";
+  if(s==="em execução" || s==="em execucao") return "st-emexecucao";
+  if(s==="concluída" || s==="concluida") return "st-concluida";
+  if(s==="parcial") return "st-parcial";
+  return "st-pendente";
+}
+
+function safeText(s){ return (s||"").toString().replace(/\s+/g," ").trim(); }
+
+/* =========================================================
+   Firebase Functions
+========================================================= */
+
+// Monitorar status da conexão
+firebase.firestore().enableNetwork()
+  .then(() => {
+    $("firebaseStatus").className = "firebase-status online";
+    $("firebaseStatus").textContent = "✅ Conectado ao Firebase";
+  })
+  .catch(() => {
+    $("firebaseStatus").className = "firebase-status offline";
+    $("firebaseStatus").textContent = "❌ Offline - dados podem estar desatualizados";
+  });
+
+// Salvar atividade
+async function putActivity(a) {
+  try {
+    const id = a.id || uid();
+    const docRef = activitiesCollection.doc(id);
+    await docRef.set({
+      ...a,
+      id: id,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error("Erro ao salvar:", error);
+    toast("Erro ao salvar no Firebase");
+    return false;
+  }
+}
+
+// Buscar uma atividade
+async function getActivity(id) {
+  try {
+    const doc = await activitiesCollection.doc(id).get();
+    return doc.exists ? doc.data() : null;
+  } catch (error) {
+    console.error("Erro ao buscar:", error);
+    return null;
+  }
+}
+
+// Buscar todas as atividades
+async function getAllActivities() {
+  try {
+    const snapshot = await activitiesCollection.get();
+    const activities = [];
+    snapshot.forEach(doc => {
+      activities.push(doc.data());
+    });
+    return activities.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+  } catch (error) {
+    console.error("Erro ao buscar atividades:", error);
+    return [];
+  }
+}
+
+// Deletar atividades
+async function deleteActivities(ids) {
+  try {
+    const batch = db.batch();
+    ids.forEach(id => {
+      batch.delete(activitiesCollection.doc(id));
+    });
+    await batch.commit();
+    return true;
+  } catch (error) {
+    console.error("Erro ao deletar:", error);
+    return false;
+  }
+}
+
+// Preferências
+async function setPref(key, value) {
+  try {
+    const docRef = prefsCollection.doc(key);
+    await docRef.set({
+      key,
+      value,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error("Erro ao salvar preferência:", error);
+    return false;
+  }
+}
+
+async function getPref(key) {
+  try {
+    const doc = await prefsCollection.doc(key).get();
+    return doc.exists ? doc.data().value : "";
+  } catch (error) {
+    console.error("Erro ao buscar preferência:", error);
+    return "";
+  }
+}
+
+// Wipe DB (reset total)
+async function wipeDB() {
+  try {
+    const activities = await getAllActivities();
+    const batch = db.batch();
+    activities.forEach(a => {
+      batch.delete(activitiesCollection.doc(a.id));
+    });
+    await batch.commit();
+    return true;
+  } catch (error) {
+    console.error("Erro ao limpar:", error);
+    return false;
+  }
+}
+
+/* =========================================================
+   Gerenciamento de equipamentos dinâmicos para NOVA ATIVIDADE
+========================================================= */
+function setupEquipmentSelection() {
+  const machineSelect = $("newMachine");
+  const equipmentOptions = $("equipmentGroupOptions");
+  const selectedDisplay = $("selectedEquipmentDisplay");
+  
+  machineSelect.addEventListener('change', function() {
+    const machine = this.value;
+    equipmentOptions.innerHTML = '';
+    $("selectedEquipmentDisplay").textContent = 'Nenhum';
+    $("newEquipment").value = '';
+    
+    document.querySelectorAll('.equipment-select-group').forEach(group => {
+      group.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.equipment-options:not(#equipmentGroupOptions)').forEach(opt => {
+      opt.innerHTML = '';
+    });
+    
+    if (['PC', 'TR', 'PT', 'TP', 'VIX'].includes(machine)) {
+      const groupDiv = $(`equipment${machine}Group`);
+      if (groupDiv) {
+        groupDiv.classList.add('active');
+        populateEquipmentOptions(machine, $(`${machine.toLowerCase()}Options`), 'new');
+      }
+    } else {
+      const groups = ['Mini Máquina', 'Bobcat', 'Mini Retro', 'CR 950', 'TR-Esteira'];
+      groups.forEach(group => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'equipment-option';
+        btn.textContent = group;
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('#equipmentGroupOptions .equipment-option').forEach(b => {
+            b.classList.remove('selected');
+          });
+          this.classList.add('selected');
+          const equipment = `${machine} - ${group}`;
+          $("newEquipment").value = equipment;
+          selectedDisplay.textContent = equipment;
+        });
+        equipmentOptions.appendChild(btn);
+      });
+    }
+  });
+  
+  function populateEquipmentOptions(type, container, mode = 'new') {
+    const equipments = equipmentData[type];
+    container.innerHTML = '';
+    
+    equipments.forEach(eq => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'equipment-option';
+      
+      if (type === 'VIX') {
+        btn.textContent = `${eq.tag} - ${eq.descricao}`;
+      } else {
+        btn.textContent = `${eq.id} (${eq.grupo})${eq.infra ? ' - INFRA' : ''}`;
+      }
+      
+      btn.addEventListener('click', function() {
+        container.querySelectorAll('.equipment-option').forEach(b => {
+          b.classList.remove('selected');
+        });
+        this.classList.add('selected');
+        let equipment;
+        if (type === 'VIX') {
+          equipment = `${type} - ${eq.tag} - ${eq.descricao}`;
+        } else {
+          equipment = `${type} - ${eq.id} (${eq.grupo})${eq.infra ? ' - INFRA' : ''}`;
+        }
+        if (mode === 'new') {
+          $("newEquipment").value = equipment;
+          $("selectedEquipmentDisplay").textContent = equipment;
+        } else {
+          $("editEquipment").value = equipment;
+          $("editSelectedEquipmentDisplay").textContent = equipment;
+        }
+      });
+      container.appendChild(btn);
+    });
+  }
+}
+
+/* =========================================================
+   Gerenciamento de equipamentos dinâmicos para EDIÇÃO
+========================================================= */
+function setupEditEquipmentSelection() {
+  const machineSelect = $("editMachine");
+  const equipmentOptions = $("editEquipmentGroupOptions");
+  const selectedDisplay = $("editSelectedEquipmentDisplay");
+  
+  machineSelect.addEventListener('change', function() {
+    const machine = this.value;
+    equipmentOptions.innerHTML = '';
+    $("editSelectedEquipmentDisplay").textContent = 'Nenhum';
+    $("editEquipment").value = '';
+    
+    document.querySelectorAll('.equipment-select-group[id^="editEquipment"]').forEach(group => {
+      group.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.equipment-options[id^="edit"]').forEach(opt => {
+      opt.innerHTML = '';
+    });
+    
+    if (['PC', 'TR', 'PT', 'TP', 'VIX'].includes(machine)) {
+      const groupDiv = $(`editEquipment${machine}Group`);
+      if (groupDiv) {
+        groupDiv.classList.add('active');
+        populateEditEquipmentOptions(machine, $(`edit${machine}Options`));
+      }
+    } else {
+      const groups = ['Mini Máquina', 'Bobcat', 'Mini Retro', 'CR 950', 'TR-Esteira'];
+      groups.forEach(group => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'equipment-option';
+        btn.textContent = group;
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('#editEquipmentGroupOptions .equipment-option').forEach(b => {
+            b.classList.remove('selected');
+          });
+          this.classList.add('selected');
+          const equipment = `${machine} - ${group}`;
+          $("editEquipment").value = equipment;
+          selectedDisplay.textContent = equipment;
+        });
+        equipmentOptions.appendChild(btn);
+      });
+    }
+  });
+  
+  function populateEditEquipmentOptions(type, container) {
+    const equipments = equipmentData[type];
+    container.innerHTML = '';
+    
+    equipments.forEach(eq => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'equipment-option';
+      
+      if (type === 'VIX') {
+        btn.textContent = `${eq.tag} - ${eq.descricao}`;
+      } else {
+        btn.textContent = `${eq.id} (${eq.grupo})${eq.infra ? ' - INFRA' : ''}`;
+      }
+      
+      btn.addEventListener('click', function() {
+        container.querySelectorAll('.equipment-option').forEach(b => {
+          b.classList.remove('selected');
+        });
+        this.classList.add('selected');
+        let equipment;
+        if (type === 'VIX') {
+          equipment = `${type} - ${eq.tag} - ${eq.descricao}`;
+        } else {
+          equipment = `${type} - ${eq.id} (${eq.grupo})${eq.infra ? ' - INFRA' : ''}`;
+        }
+        $("editEquipment").value = equipment;
+        $("editSelectedEquipmentDisplay").textContent = equipment;
+      });
+      container.appendChild(btn);
+    });
+  }
+}
+
+/* =========================================================
+   Função para selecionar equipamento na edição
+========================================================= */
+function selectEquipmentInEditForm(machine, equipment) {
+  document.querySelectorAll('#editEquipmentGroupOptions .equipment-option').forEach(b => {
+    b.classList.remove('selected');
+  });
+  document.querySelectorAll('.equipment-options[id^="edit"] .equipment-option').forEach(b => {
+    b.classList.remove('selected');
+  });
+  
+  document.querySelectorAll('.equipment-select-group[id^="editEquipment"]').forEach(group => {
+    group.classList.remove('active');
+  });
+  
+  $("editEquipmentGroupOptions").innerHTML = '';
+  
+  if (['PC', 'TR', 'PT', 'TP', 'VIX'].includes(machine)) {
+    const groupDiv = $(`editEquipment${machine}Group`);
+    if (groupDiv) {
+      groupDiv.classList.add('active');
+      populateEditEquipmentOptionsForEdit(machine, $(`edit${machine}Options`), equipment);
+    }
+  } else {
+    const groups = ['Mini Máquina', 'Bobcat', 'Mini Retro', 'CR 950', 'TR-Esteira'];
+    groups.forEach(group => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'equipment-option';
+      btn.textContent = group;
+      
+      const expectedEquipment = `${machine} - ${group}`;
+      if (equipment === expectedEquipment) {
+        btn.classList.add('selected');
+      }
+      
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('#editEquipmentGroupOptions .equipment-option').forEach(b => {
+          b.classList.remove('selected');
+        });
+        this.classList.add('selected');
+        const newEquipment = `${machine} - ${group}`;
+        $("editEquipment").value = newEquipment;
+        $("editSelectedEquipmentDisplay").textContent = newEquipment;
+      });
+      $("editEquipmentGroupOptions").appendChild(btn);
+    });
+  }
+}
+
+function populateEditEquipmentOptionsForEdit(type, container, selectedEquipment) {
+  const equipments = equipmentData[type];
+  container.innerHTML = '';
+  
+  equipments.forEach(eq => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'equipment-option';
+    
+    let equipmentText;
+    let expectedEquipment;
+    
+    if (type === 'VIX') {
+      equipmentText = `${eq.tag} - ${eq.descricao}`;
+      expectedEquipment = `${type} - ${eq.tag} - ${eq.descricao}`;
+    } else {
+      equipmentText = `${eq.id} (${eq.grupo})${eq.infra ? ' - INFRA' : ''}`;
+      expectedEquipment = `${type} - ${eq.id} (${eq.grupo})${eq.infra ? ' - INFRA' : ''}`;
+    }
+    
+    btn.textContent = equipmentText;
+    
+    if (selectedEquipment === expectedEquipment) {
+      btn.classList.add('selected');
+    }
+    
+    btn.addEventListener('click', function() {
+      container.querySelectorAll('.equipment-option').forEach(b => {
+        b.classList.remove('selected');
+      });
+      this.classList.add('selected');
+      $("editEquipment").value = expectedEquipment;
+      $("editSelectedEquipmentDisplay").textContent = expectedEquipment;
+    });
+    container.appendChild(btn);
+  });
+}
+
+/* =========================================================
+   Imagens
+========================================================= */
+async function fileToDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+    r.readAsDataURL(file);
+  });
+}
+
+async function compressDataURL(dataUrl, maxW=1600, quality=0.82){
+  const img = new Image();
+  img.src = dataUrl;
+  await new Promise(res=> img.onload=res);
+  const ratio = img.width / img.height;
+  let w = Math.min(img.width, maxW);
+  let h = Math.round(w/ratio);
+  const c=document.createElement("canvas");
+  c.width=w; c.height=h;
+  const ctx=c.getContext("2d");
+  ctx.drawImage(img,0,0,w,h);
+  return c.toDataURL("image/jpeg", quality);
+}
+
+async function filesToCompressedDataURLs(files){
+  const out=[];
+  for(const f of files){
+    const du = await fileToDataURL(f);
+    const cdu = await compressDataURL(du);
+    out.push({ id: uid(), name: f.name || "foto.jpg", dataUrl: cdu, ts: Date.now() });
+  }
+  return out;
+}
+
+/* =========================================================
+   Navegação de abas
+========================================================= */
+function setTab(tabId){
+  document.querySelectorAll(".tabPane").forEach(p=>p.style.display="none");
+  $(tabId).style.display="block";
+  document.querySelectorAll(".navBtn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(`.navBtn[data-tab="${tabId}"]`).forEach(b=>b.classList.add("active"));
+  if(tabId==="tab-dashboard") refreshDashboard();
+  if(tabId==="tab-lista") refreshTable();
+  if(tabId==="tab-fotos") loadPhotoSelect();
+  if(tabId==="tab-aderencia") calcularAderencia();
+}
+document.querySelectorAll(".navBtn").forEach(btn=>{
+  btn.addEventListener("click", ()=> setTab(btn.dataset.tab));
+});
+
+/* =========================================================
+   Estado de filtros
+========================================================= */
+const filters = {
+  start: "", end: "",
+  machine: "", status: "",
+  company: "", text: ""
+};
+
+function readFiltersUI(){
+  filters.start = $("fStart").value || "";
+  filters.end = $("fEnd").value || "";
+  filters.machine = $("fMachine").value || "";
+  filters.status = $("fStatus").value || "";
+  filters.company = $("fCompany").value || "";
+  filters.text = $("fText").value || "";
+}
+
+function applyFilters(list){
+  const fs=filters.start, fe=filters.end;
+  const m=filters.machine, st=filters.status;
+  const co=norm(filters.company);
+  const txq=norm(filters.text);
+
+  return list.filter(a=>{
+    if(fs && fe && !overlaps(a.start,a.end,fs,fe)) return false;
+    if(m && a.machine!==m) return false;
+    if(st && a.status!==st) return false;
+    if(co && !norm(a.company).includes(co)) return false;
+
+    if(txq){
+      const blob = norm([a.machine,a.equipment,a.location,a.desc,a.planner,a.company,a.shiftStart,a.shiftEnd].join(" "));
+      if(!blob.includes(txq)) return false;
+    }
+    return true;
+  });
+}
+
+/* =========================================================
+   Cadastro (Nova Atividade)
+========================================================= */
+$("btnNewClear").addEventListener("click", ()=>{
+  $("formNew").reset();
+  $("selectedEquipmentDisplay").textContent = 'Nenhum';
+  document.querySelectorAll('.equipment-option').forEach(btn => {
+    btn.classList.remove('selected');
+  });
+  document.querySelectorAll('.equipment-select-group').forEach(group => {
+    group.classList.remove('active');
+  });
+  $("motivoNaoConclusaoGroup").style.display = 'none';
+});
+
+$("newStatus").addEventListener("change", function() {
+  const status = this.value;
+  if (status === "Parcial" || status === "Pendente") {
+    $("motivoNaoConclusaoGroup").style.display = 'grid';
+  } else {
+    $("motivoNaoConclusaoGroup").style.display = 'none';
+    $("newMotivo").value = '';
+    $("newMotivoDetalhado").value = '';
+  }
+});
+
+$("formNew").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+
+  const status = $("newStatus").value;
+  const motivo = (status === "Parcial" || status === "Pendente") ? $("newMotivo").value : "";
+  
+  if ((status === "Parcial" || status === "Pendente") && !motivo) {
+    toast("Selecione o motivo de não conclusão.");
+    return;
+  }
+
+  const a = {
+    id: uid(),
+    osNumber: generateOSNumber(),
+    machine: $("newMachine").value.trim(),
+    equipment: safeText($("newEquipment").value),
+    location: safeText($("newLocation").value),
+    title: safeText($("newTitle").value),
+    responsible: safeText($("newResponsible").value),
+    priority: $("newPriority").value || "Média",
+    desc: safeText($("newDesc").value),
+    start: $("newStart").value,
+    end: $("newEnd").value,
+    status: status,
+    motivo: motivo,
+    motivoDetalhado: safeText($("newMotivoDetalhado").value),
+    planner: safeText($("newPlanner").value),
+    company: safeText($("newCompany").value),
+    shiftStart: $("newShiftStart").value || "",
+    shiftEnd: $("newShiftEnd").value || "",
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    photosBefore: [],
+    photosAfter: []
+  };
+
+  if(!a.machine || !a.equipment || !a.title || !a.start || !a.end || !a.planner || !a.company){
+    toast("Preencha os campos essenciais.");
+    return;
+  }
+  if(new Date(a.start) > new Date(a.end)){
+    toast("Data inicial não pode ser maior que a final.");
+    return;
+  }
+
+  await putActivity(a);
+  toast("Atividade salva com OS: " + a.osNumber);
+  $("formNew").reset();
+  $("selectedEquipmentDisplay").textContent = 'Nenhum';
+  document.querySelectorAll('.equipment-option').forEach(btn => {
+    btn.classList.remove('selected');
+  });
+  $("motivoNaoConclusaoGroup").style.display = 'none';
+
+  await refreshTable();
+  await refreshDashboard();
+  await loadPhotoSelect();
+  await calcularAderencia();
+  
+  setTab("tab-fotos");
+  $("photoActivitySelect").value = a.id;
+});
+
+/* =========================================================
+   Lista (Tabela)
+========================================================= */
+let currentList = [];
+let selectedIds = new Set();
+
+$("btnApplyFilters").addEventListener("click", async ()=>{
+  readFiltersUI();
+  await refreshTable();
+  await refreshDashboard();
+  await calcularAderencia();
+  toast("Filtros aplicados.");
+});
+
+$("btnClearFilters").addEventListener("click", async ()=>{
+  $("fStart").value=""; $("fEnd").value="";
+  $("fMachine").value=""; $("fStatus").value="";
+  $("fCompany").value=""; $("fText").value="";
+  readFiltersUI();
+  await refreshTable();
+  await refreshDashboard();
+  await calcularAderencia();
+  toast("Filtros limpos.");
+});
+
+$("btnRefresh").addEventListener("click", async ()=>{
+  readFiltersUI();
+  await refreshTable();
+  await refreshDashboard();
+  await calcularAderencia();
+  toast("Atualizado.");
+});
+
+$("chkAll").addEventListener("change", ()=>{
+  const ck=$("chkAll").checked;
+  document.querySelectorAll(".rowChk").forEach(ch=>{
+    ch.checked=ck;
+    const id=ch.dataset.id;
+    if(ck) selectedIds.add(id); else selectedIds.delete(id);
+  });
+  updateDeleteSelectedBtn();
+});
+
+function updateDeleteSelectedBtn(){
+  $("btnDeleteSelected").disabled = selectedIds.size===0;
+}
+
+$("btnDeleteSelected").addEventListener("click", async ()=>{
+  if(selectedIds.size===0) return;
+  if(!confirm(`Excluir ${selectedIds.size} atividade(s)?`)) return;
+  await deleteActivities([...selectedIds]);
+  selectedIds.clear();
+  $("chkAll").checked=false;
+  updateDeleteSelectedBtn();
+  await refreshTable();
+  await refreshDashboard();
+  await loadPhotoSelect();
+  await calcularAderencia();
+  toast("Excluídas.");
+});
+
+async function refreshTable(){
+  const all = await getAllActivities();
+  readFiltersUI();
+  currentList = applyFilters(all)
+    .sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
+
+  selectedIds = new Set();
+  $("chkAll").checked=false;
+  updateDeleteSelectedBtn();
+
+  const tb=$("tblBody");
+  tb.innerHTML = "";
+
+  if(currentList.length===0){
+    tb.innerHTML = `<tr><td colspan="6" class="text-center small py-4 text-muted">Nenhuma atividade para os filtros selecionados.</td></tr>`;
+    return;
+  }
+
+  for(const a of currentList){
+    const hasBefore = (a.photosBefore||[]).length;
+    const hasAfter  = (a.photosAfter||[]).length;
+    const shiftInfo = a.shiftStart ? 
+      (a.shiftEnd && a.shiftStart !== a.shiftEnd ? 
+        `${a.shiftStart} → ${a.shiftEnd}` : a.shiftStart) : "—";
+    
+    const motivoInfo = (a.status === "Parcial" || a.status === "Pendente") ? 
+      `<span class="small text-muted">Motivo: ${a.motivo || "—"}</span>` : "";
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="checkbox" class="rowChk" data-id="${a.id}"></td>
+      <td>
+        <div class="fw-semibold">${a.osNumber || "OS pendente"} - ${a.title || a.desc || "—"}</div>
+        <div class="small text-muted">${a.machine} • ${a.equipment}${a.priority ? (" • Prioridade: "+a.priority) : ""}${a.responsible ? (" • Resp.: "+a.responsible) : ""}</div>
+        <div class="small text-muted">${a.location ? ("📍 "+a.location) : ""}</div>
+        <div class="small text-muted">${(a.title && a.desc) ? a.desc : ""}</div>
+        ${motivoInfo}
+      </td>
+      <td>
+        <div class="mono">${fmtDate(a.start)} → ${fmtDate(a.end)}</div>
+      </td>
+      <td>
+        <span class="badgeStatus ${statusClass(a.status)}">${a.status}</span>
+      </td>
+      <td>
+        <div class="small"><b>Empresa:</b> ${a.company || "—"}</div>
+        <div class="small"><b>Turnos:</b> ${shiftInfo}</div>
+        <div class="small"><b>Fotos:</b> Antes ${hasBefore} | Depois ${hasAfter}</div>
+      </td>
+      <td>
+        <div class="d-grid gap-2">
+          <button class="btn btn-sm btn-outline-primary fw-semibold btnEdit" data-id="${a.id}">Ver/Editar</button>
+          <button class="btn btn-sm btn-outline-success fw-semibold btnGoPhotos" data-id="${a.id}">Fotos</button>
+        </div>
+      </td>
+    `;
+    tb.appendChild(row);
+  }
+
+  tb.querySelectorAll(".rowChk").forEach(ch=>{
+    ch.addEventListener("change", ()=>{
+      const id=ch.dataset.id;
+      if(ch.checked) selectedIds.add(id); else selectedIds.delete(id);
+      updateDeleteSelectedBtn();
+      const total = tb.querySelectorAll(".rowChk").length;
+      const marked = tb.querySelectorAll(".rowChk:checked").length;
+      $("chkAll").checked = (total>0 && total===marked);
+    });
+  });
+
+  tb.querySelectorAll(".btnEdit").forEach(b=>{
+    b.addEventListener("click", ()=> openEdit(b.dataset.id));
+  });
+
+  tb.querySelectorAll(".btnGoPhotos").forEach(b=>{
+    b.addEventListener("click", async ()=>{
+      await loadPhotoSelect();
+      $("photoActivitySelect").value = b.dataset.id;
+      $("photoMode").value="before";
+      setTab("tab-fotos");
+      $("btnLoadPhotos").click();
+    });
+  });
+}
+
+/* =========================================================
+   Abrir modal de edição
+========================================================= */
+async function openEdit(id){
+  const a = await getActivity(id);
+  if(!a) return toast("Atividade não encontrada.");
+
+  $("editId").value = a.id;
+  $("editMachine").value = a.machine;
+  $("editEquipment").value = a.equipment || "";
+  $("editLocation").value = a.location || "";
+  $("editResponsible").value = a.responsible || "";
+  $("editPriority").value = a.priority || "Média";
+  $("editTitle").value = a.title || "";
+  $("editDesc").value = a.desc || "";
+  $("editStart").value = a.start || "";
+  $("editEnd").value = a.end || "";
+  $("editStatus").value = a.status || "Programada";
+  $("editMotivo").value = a.motivo || "";
+  $("editMotivoDetalhado").value = a.motivoDetalhado || "";
+  $("editPlanner").value = a.planner || "";
+  $("editCompany").value = a.company || "";
+  $("editShiftStart").value = a.shiftStart || "";
+  $("editShiftEnd").value = a.shiftEnd || "";
+  
+  if (a.status === "Parcial" || a.status === "Pendente") {
+    $("editMotivoNaoConclusaoGroup").style.display = 'grid';
+  } else {
+    $("editMotivoNaoConclusaoGroup").style.display = 'none';
+  }
+  
+  $("editSelectedEquipmentDisplay").textContent = a.equipment || "Nenhum";
+  
+  selectEquipmentInEditForm(a.machine, a.equipment);
+
+  const modal = new bootstrap.Modal($("modalEdit"));
+  modal.show();
+}
+
+$("editStatus").addEventListener("change", function() {
+  const status = this.value;
+  if (status === "Parcial" || status === "Pendente") {
+    $("editMotivoNaoConclusaoGroup").style.display = 'grid';
+  } else {
+    $("editMotivoNaoConclusaoGroup").style.display = 'none';
+    $("editMotivo").value = '';
+    $("editMotivoDetalhado").value = '';
+  }
+});
+
+/* =========================================================
+   Salvar edição
+========================================================= */
+$("btnSaveEdit").addEventListener("click", async ()=>{
+  const id=$("editId").value;
+  const a = await getActivity(id);
+  if(!a) return toast("Atividade não encontrada.");
+
+  const status = $("editStatus").value;
+  const motivo = (status === "Parcial" || status === "Pendente") ? $("editMotivo").value : "";
+  
+  if ((status === "Parcial" || status === "Pendente") && !motivo) {
+    toast("Selecione o motivo de não conclusão.");
+    return;
+  }
+
+  a.machine = $("editMachine").value;
+  a.equipment = safeText($("editEquipment").value);
+  a.location = safeText($("editLocation").value);
+  a.responsible = safeText($("editResponsible").value);
+  a.priority = $("editPriority").value || "Média";
+  a.title = safeText($("editTitle").value);
+  a.desc = safeText($("editDesc").value);
+  a.start = $("editStart").value;
+  a.end = $("editEnd").value;
+  a.status = status;
+  a.motivo = motivo;
+  a.motivoDetalhado = safeText($("editMotivoDetalhado").value);
+  a.planner = safeText($("editPlanner").value);
+  a.company = safeText($("editCompany").value);
+  a.shiftStart = $("editShiftStart").value || "";
+  a.shiftEnd = $("editShiftEnd").value || "";
+
+  if(!a.machine || !a.equipment || !a.title || !a.start || !a.end || !a.planner || !a.company){
+    toast("Preencha os campos essenciais.");
+    return;
+  }
+
+  a.updatedAt = Date.now();
+
+  if(new Date(a.start) > new Date(a.end)){
+    toast("Data inicial não pode ser maior que a final.");
+    return;
+  }
+
+  await putActivity(a);
+  toast("Atualizado.");
+  bootstrap.Modal.getInstance($("modalEdit")).hide();
+  await refreshTable();
+  await refreshDashboard();
+  await loadPhotoSelect();
+  await calcularAderencia();
+});
+
+/* =========================================================
+   Fotos
+========================================================= */
+let photoWork = {
+  id: null,
+  mode: "before",
+  photos: [],
+  selected: new Set()
+};
+
+async function loadPhotoSelect(){
+  const all = await getAllActivities();
+  const sel = $("photoActivitySelect");
+  const cur = sel.value;
+  sel.innerHTML = "";
+  const opt0=document.createElement("option");
+  opt0.value=""; opt0.textContent="Selecione...";
+  sel.appendChild(opt0);
+
+  const sorted = all.sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
+  for(const a of sorted){
+    const o=document.createElement("option");
+    o.value=a.id;
+    o.textContent = `${a.osNumber || "OS"} - ${a.title || "Sem título"} • ${a.machine} • ${a.equipment} (${fmtDate(a.start)}→${fmtDate(a.end)})`;
+    sel.appendChild(o);
+  }
+  if(cur) sel.value = cur;
+}
+
+function renderThumbs(){
+  const row = $("thumbRow");
+  row.innerHTML="";
+  photoWork.selected = new Set();
+
+  if(photoWork.photos.length===0){
+    row.innerHTML = `<div class="small text-muted">Nenhuma foto carregada neste modo.</div>`;
+  } else {
+    for(const p of photoWork.photos){
+      const d=document.createElement("div");
+      d.className="thumb";
+      d.title = "Clique para selecionar / visualizar";
+      d.innerHTML = `<img src="${p.dataUrl}" alt="">`;
+      d.addEventListener("click", ()=>{
+        if(photoWork.selected.has(p.id)) photoWork.selected.delete(p.id);
+        else photoWork.selected.add(p.id);
+        d.style.outline = photoWork.selected.has(p.id) ? "3px solid var(--sam-orange)" : "none";
+        $("btnRemoveSelectedPhotos").disabled = photoWork.selected.size===0;
+      });
+      d.addEventListener("dblclick", ()=>{
+        $("imgPreview").src = p.dataUrl;
+        new bootstrap.Modal($("modalImage")).show();
+      });
+      row.appendChild(d);
+    }
+  }
+
+  $("btnSavePhotos").disabled = !photoWork.id;
+  $("btnRemoveSelectedPhotos").disabled = true;
+}
+
+$("btnLoadPhotos").addEventListener("click", async ()=>{
+  const id = $("photoActivitySelect").value;
+  const mode = $("photoMode").value;
+
+  if(!id){ toast("Selecione uma atividade."); return; }
+
+  const a = await getActivity(id);
+  if(!a){ toast("Atividade não encontrada."); return; }
+
+  photoWork.id = id;
+  photoWork.mode = mode;
+  photoWork.photos = (mode==="before" ? (a.photosBefore||[]) : (a.photosAfter||[]));
+
+  $("photoTitle").textContent = (mode==="before") ? "Fotos ANTES" : "Fotos DEPOIS";
+  $("photoSubtitle").textContent = `${a.osNumber || "OS"} - ${a.title || "Sem título"} • ${a.machine} • ${a.equipment} • ${fmtDate(a.start)}→${fmtDate(a.end)}`;
+
+  $("photoSummary").innerHTML = `
+    <div><b>OS:</b> ${a.osNumber || "—"}</div>
+    <div><b>Título:</b> ${a.title || "—"}</div>
+    <div><b>Descrição:</b> ${a.desc || "—"}</div>
+    <div><b>Local:</b> ${a.location || "—"}</div>
+    <div><b>Status:</b> ${a.status || "—"} ${(a.status === "Parcial" || a.status === "Pendente") ? `(Motivo: ${a.motivo || "—"})` : ""}</div>
+    <div><b>Programador(a):</b> ${a.planner || "—"}</div>
+    <div><b>Empresa:</b> ${a.company || "—"} • <b>Turnos:</b> ${a.shiftStart || "—"}${a.shiftEnd && a.shiftStart !== a.shiftEnd ? ` → ${a.shiftEnd}` : ''}</div>
+    <div class="small text-muted mt-2">Dica: se a atividade concluiu, mude o status para "Concluída" na Lista.</div>
+  `;
+
+  $("btnClearPhotos").disabled = false;
+  renderThumbs();
+});
+
+$("btnClearPhotos").addEventListener("click", async ()=>{
+  if(!photoWork.id) return;
+  if(!confirm("Limpar todas as fotos deste modo (Antes/Depois)?")) return;
+
+  const a = await getActivity(photoWork.id);
+  if(!a) return;
+
+  if(photoWork.mode==="before") a.photosBefore=[];
+  else a.photosAfter=[];
+  a.updatedAt=Date.now();
+  await putActivity(a);
+
+  photoWork.photos=[];
+  renderThumbs();
+  toast("Fotos limpas.");
+  await refreshTable();
+  await refreshDashboard();
+  await calcularAderencia();
+});
+
+async function addPickedFiles(fileList){
+  const files = Array.from(fileList||[]);
+  if(files.length===0) return;
+
+  if(!photoWork.id){
+    const all = await getAllActivities();
+    toast("Processando fotos...");
+    const dataURLs = await filesToCompressedDataURLs(files);
+    photoWork.photos = [...photoWork.photos, ...dataURLs];
+    renderThumbs();
+    toast(`+${dataURLs.length} foto(s) carregada(s).`);
+    return;
+  }
+
+  toast("Processando fotos...");
+  const newOnes = await filesToCompressedDataURLs(files);
+  photoWork.photos = [...photoWork.photos, ...newOnes];
+  renderThumbs();
+  toast(`+${newOnes.length} foto(s) carregada(s).`);
+}
+
+$("filePicker").addEventListener("change", (e)=> addPickedFiles(e.target.files));
+$("cameraPicker").addEventListener("change", (e)=> addPickedFiles(e.target.files));
+
+$("btnSavePhotos").addEventListener("click", async ()=>{
+  if(!photoWork.id) return;
+  const a = await getActivity(photoWork.id);
+  if(!a) return;
+
+  if(photoWork.mode==="before") a.photosBefore = photoWork.photos;
+  else a.photosAfter = photoWork.photos;
+  a.updatedAt = Date.now();
+
+  await putActivity(a);
+  toast("Fotos salvas.");
+  await refreshTable();
+  await refreshDashboard();
+  await calcularAderencia();
+});
+
+$("btnRemoveSelectedPhotos").addEventListener("click", ()=>{
+  if(photoWork.selected.size===0) return;
+  const set = photoWork.selected;
+  photoWork.photos = photoWork.photos.filter(p=> !set.has(p.id));
+  renderThumbs();
+  toast("Selecionadas removidas (clique em Salvar).");
+});
+
+/* =========================================================
+   Dashboard (charts)
+========================================================= */
+let charts = { 
+  status:null, 
+  machine:null, 
+  company:null, 
+  shiftStart:null, 
+  timeline:null,
+  motivos:null,
+  conclusaoMachine:null,
+  conclusaoEmpresa:null
+};
+
+function destroyChart(c){
+  try{ c?.destroy(); }catch(e){}
+}
+
+function countBy(list, keyFn){
+  const m=new Map();
+  for(const it of list){
+    const k=keyFn(it)||"(vazio)";
+    m.set(k,(m.get(k)||0)+1);
+  }
+  return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]);
+}
+
+function dateRangeLabel(){
+  const s=filters.start, e=filters.end;
+  if(s && e) return `${fmtDate(s)} → ${fmtDate(e)}`;
+  return "— (use filtros para período)";
+}
+
+async function refreshDashboard(){
+  const all = await getAllActivities();
+  const list = applyFilters(all);
+
+  $("kpiTotal").textContent = list.length;
+  $("kpiDone").textContent = list.filter(a=>norm(a.status)==="concluída"||norm(a.status)==="concluida").length;
+  $("kpiPending").textContent = list.filter(a=>norm(a.status)!=="concluída" && norm(a.status)!=="concluida").length;
+  $("dashWeekLabel").textContent = dateRangeLabel();
+
+  const st = countBy(list, a=>a.status||"Pendente");
+  const stLabels = st.map(x=>x[0]);
+  const stVals = st.map(x=>x[1]);
+
+  const motivosMap = new Map();
+  for(const a of list){
+    if (a.status === "Parcial" || a.status === "Pendente") {
+      const motivo = a.motivo || "Não informado";
+      motivosMap.set(motivo, (motivosMap.get(motivo)||0) + 1);
+    }
+  }
+  const motivos = Array.from(motivosMap.entries()).sort((a,b)=>b[1]-a[1]);
+  const motivosLabels = motivos.map(x=>x[0]);
+  const motivosVals = motivos.map(x=>x[1]);
+
+  const mcMap = new Map();
+  for(const a of list){
+    const key = a.equipment ? `${a.machine} (${a.equipment})` : a.machine;
+    mcMap.set(key, (mcMap.get(key)||0)+1);
+  }
+  const mc = Array.from(mcMap.entries()).sort((a,b)=>b[1]-a[1]);
+  const mcLabels = mc.map(x=>x[0]);
+  const mcVals = mc.map(x=>x[1]);
+
+  const co = countBy(list, a=>a.company||"(vazio)").slice(0,8);
+  const coLabels = co.map(x=>x[0]);
+  const coVals = co.map(x=>x[1]);
+
+  const sh = countBy(list, a=>a.shiftStart||"—");
+  const shLabels = sh.map(x=>x[0]);
+  const shVals = sh.map(x=>x[1]);
+
+  const rangeS = (filters.start || list.map(a=>a.start).filter(Boolean).sort()[0] || todayISO());
+  const rangeE = (filters.end || list.map(a=>a.end).filter(Boolean).sort().slice(-1)[0] || todayISO());
+  const days = [];
+  const ds = new Date(rangeS), de = new Date(rangeE);
+  ds.setHours(0,0,0,0); de.setHours(0,0,0,0);
+  for(let d=new Date(ds); d<=de; d.setDate(d.getDate()+1)){
+    days.push(d.toISOString().slice(0,10));
+  }
+  const dayIndex = (iso)=> {
+    const t = new Date(iso); t.setHours(0,0,0,0);
+    const diff = Math.round((t - ds)/(24*3600*1000));
+    return Math.max(0, Math.min(days.length-1, diff));
+  };
+
+  const seen = {};
+  const tlData = list
+    .filter(a=>a.title && a.start && a.end)
+    .map(a=>{
+      const base = a.title;
+      seen[base]=(seen[base]||0)+1;
+      const y = seen[base]>1 ? `${base} (#${seen[base]})` : base;
+      const x0 = dayIndex(a.start);
+      const x1 = Math.min(days.length, dayIndex(a.end)+1);
+      return { y, x:[x0, x1] };
+    });
+
+  Object.values(charts).forEach(c=> destroyChart(c));
+
+  if(stLabels.length > 0){
+    charts.status = new Chart($("chartStatus"), {
+      type:"bar",
+      data:{ labels: stLabels, datasets:[{ label:"Qtd", data: stVals, backgroundColor:"#005c8f" }] },
+      options:{ responsive:true, plugins:{ legend:{ display:false } } }
+    });
+  }
+
+  if(motivosLabels.length > 0){
+    charts.motivos = new Chart($("chartMotivos"), {
+      type:"pie",
+      data:{ 
+        labels: motivosLabels, 
+        datasets:[{ 
+          data: motivosVals, 
+          backgroundColor:["#e03131","#f08c00","#6b7280","#0b4b7a","#8a4b00","#8a1f1f","#1b5e2b","#8a6e00"] 
+        }] 
+      },
+      options:{ 
+        responsive:true,
+        plugins:{ 
+          legend:{ position:"right" },
+          title:{ display:true, text:"Motivos de Não Conclusão" }
+        } 
+      }
+    });
+  }
+
+  if(mcLabels.length > 0){
+    charts.machine = new Chart($("chartMachine"), {
+      type:"doughnut",
+      data:{ 
+        labels: mcLabels, 
+        datasets:[{ 
+          label:"Qtd", 
+          data: mcVals, 
+          backgroundColor:["#2f9e44","#005c8f","#f08c00","#e03131","#6b7280","#8b5cf6","#ec4899","#14b8a6","#f97316"] 
+        }] 
+      },
+      options:{ 
+        responsive:true,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { boxWidth: 12, font: { size: 10 } }
+          }
+        }
+      }
+    });
+  }
+
+  if(coLabels.length > 0){
+    charts.company = new Chart($("chartCompany"), {
+      type:"bar",
+      data:{ labels: coLabels, datasets:[{ label:"Qtd", data: coVals, backgroundColor:"#f08c00" }] },
+      options:{ responsive:true, plugins:{ legend:{ display:false } } }
+    });
+  }
+
+  if(shLabels.length > 0){
+    charts.shiftStart = new Chart($("chartShiftStart"), {
+      type:"bar",
+      data:{ labels: shLabels, datasets:[{ label:"Qtd", data: shVals, backgroundColor:"#6b7280" }] },
+      options:{ responsive:true, plugins:{ legend:{ display:false } } }
+    });
+  }
+
+  if(tlData.length > 0){
+    charts.timeline = new Chart($("chartTimeline"), {
+      type:"bar",
+      data:{ 
+        datasets:[{ 
+          label:"Período", 
+          data: tlData, 
+          backgroundColor:"rgba(0,92,143,0.6)",
+          borderColor:"#005c8f",
+          borderWidth:1
+        }] 
+      },
+      options:{
+        responsive:true,
+        indexAxis:"y",
+        parsing:{ xAxisKey:"x", yAxisKey:"y" },
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            callbacks:{
+              label:(ctx)=>{
+                const v = ctx.raw?.x;
+                if(!v) return "";
+                const a = days[Math.max(0, Math.min(days.length-1, v[0]))];
+                const b = days[Math.max(0, Math.min(days.length-1, v[1]-1))];
+                return ` ${a} → ${b}`;
+              }
+            }
+          }
+        },
+        scales:{
+          x:{
+            type:"linear",
+            min:0,
+            max: Math.max(1, days.length),
+            ticks:{
+              stepSize:1,
+              callback:(value)=>{
+                const i = Math.round(value);
+                if(i<0||i>=days.length) return "";
+                return fmtDate(days[i]);
+              }
+            }
+          },
+          y:{ ticks:{ autoSkip:false } }
+        }
+      }
+    });
+  }
+}
+
+/* =========================================================
+   Exportar Dashboard para PDF
+========================================================= */
+async function exportDashboardPDF(){
+  try{
+    await refreshDashboard();
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    const colGap = 6;
+    const rowGap = 6;
+    const cols = 2;
+    const rows = 3;
+    const cellW = (pageW - margin*2 - colGap)/cols;
+    const cellH = (pageH - margin*2 - rowGap*2)/rows;
+
+    const items = [
+      {id:"chartStatus", title:"Status"},
+      {id:"chartMachine", title:"Por tipo de máquina e equipamento"},
+      {id:"chartCompany", title:"Por empresa executora"},
+      {id:"chartMotivos", title:"Motivos de Não Conclusão"},
+      {id:"chartShiftStart", title:"Por turno início"},
+      {id:"chartTimeline", title:"Cronologia (Atividades x Período)"}
+    ];
+
+    pdf.setFontSize(14);
+    pdf.text("Dashboard • Atividades Mini Máquinas", margin, margin-2);
+    pdf.setFontSize(10);
+    pdf.text(`Período: ${dateRangeLabel()} • Gerado em: ${new Date().toLocaleString("pt-BR")}`, margin, margin+4);
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    for(let i=0; i<items.length; i++){
+      const it = items[i];
+      const r = Math.floor(i/2);
+      const c = i%2;
+      const x0 = margin + c*(cellW+colGap);
+      const y0 = margin + 10 + r*(cellH+rowGap);
+
+      pdf.setFontSize(9);
+      pdf.text(it.title, x0, y0+4);
+
+      const canvas = $(it.id);
+      if(!canvas) continue;
+      
+      try {
+        const imgData = canvas.toDataURL("image/png", 1.0);
+        const padTop = 7;
+        const imgW = cellW;
+        const imgH = cellH - padTop;
+        pdf.addImage(imgData, "PNG", x0, y0+padTop, imgW, imgH);
+      } catch(err) {
+        console.warn("Não foi possível capturar gráfico", it.id, err);
+        pdf.setFontSize(8);
+        pdf.text("Gráfico não disponível", x0+5, y0+cellH/2);
+      }
+    }
+
+    pdf.save(`Dashboard_Atividades_${todayISO()}.pdf`);
+    toast("Dashboard exportado para PDF.");
+  }catch(err){
+    console.error("Erro ao exportar dashboard:", err);
+    toast("Falha ao exportar o Dashboard.");
+  }
+}
+
+$("btnExportDashboard").addEventListener("click", exportDashboardPDF);
+
+/* =========================================================
+   Cálculo de Aderência
+========================================================= */
+async function calcularAderencia(){
+  const all = await getAllActivities();
+  const list = applyFilters(all);
+  
+  if(list.length === 0){
+    $("aderenciaGeral").textContent = "0%";
+    $("progressBarFill").style.width = "0%";
+    $("totalProgramadas").textContent = "0";
+    $("totalConcluidas").textContent = "0";
+    $("taxaConclusao").textContent = "0%";
+    $("atrasos").textContent = "0";
+    $("faltamMaquina").textContent = "0";
+    $("parciais").textContent = "0";
+    $("tblAderenciaEquipamentos").innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center text-muted">Nenhuma atividade para os filtros selecionados</td>
+      </tr>
+    `;
+    return;
+  }
+  
+  const totalProgramadas = list.length;
+  const concluidas = list.filter(a => norm(a.status) === "concluída" || norm(a.status) === "concluida").length;
+  const parciais = list.filter(a => norm(a.status) === "parcial").length;
+  const taxaConclusao = totalProgramadas > 0 ? Math.round((concluidas / totalProgramadas) * 100) : 0;
+  
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const atrasos = list.filter(a => {
+    if(norm(a.status) === "concluída" || norm(a.status) === "concluida") return false;
+    if(!a.end) return false;
+    const dataFim = new Date(a.end);
+    dataFim.setHours(0,0,0,0);
+    return dataFim < hoje;
+  }).length;
+  
+  const faltamMaquina = list.filter(a => 
+    (a.status === "Parcial" || a.status === "Pendente") && 
+    a.motivo === "Falta de máquina"
+  ).length;
+  
+  $("aderenciaGeral").textContent = `${taxaConclusao}%`;
+  $("progressBarFill").style.width = `${taxaConclusao}%`;
+  $("totalProgramadas").textContent = totalProgramadas;
+  $("totalConcluidas").textContent = concluidas;
+  $("taxaConclusao").textContent = `${taxaConclusao}%`;
+  $("atrasos").textContent = atrasos;
+  $("faltamMaquina").textContent = faltamMaquina;
+  $("parciais").textContent = parciais;
+  
+  const maquinasMap = new Map();
+  const empresasMap = new Map();
+  
+  for(const a of list){
+    if(!maquinasMap.has(a.machine)){
+      maquinasMap.set(a.machine, {total:0, concluidas:0});
+    }
+    const maquina = maquinasMap.get(a.machine);
+    maquina.total++;
+    if(norm(a.status) === "concluída" || norm(a.status) === "concluida"){
+      maquina.concluidas++;
+    }
+    
+    if(a.company){
+      if(!empresasMap.has(a.company)){
+        empresasMap.set(a.company, {total:0, concluidas:0});
+      }
+      const empresa = empresasMap.get(a.company);
+      empresa.total++;
+      if(norm(a.status) === "concluída" || norm(a.status) === "concluida"){
+        empresa.concluidas++;
+      }
+    }
+  }
+  
+  const maquinasArray = Array.from(maquinasMap.entries());
+  if(maquinasArray.length > 0){
+    const maquinaLabels = maquinasArray.map(m => m[0]);
+    const maquinaTaxas = maquinasArray.map(m => 
+      m[1].total > 0 ? Math.round((m[1].concluidas / m[1].total) * 100) : 0
+    );
+    
+    if(charts.conclusaoMachine) destroyChart(charts.conclusaoMachine);
+    charts.conclusaoMachine = new Chart($("chartConclusaoMachine"), {
+      type: "bar",
+      data: {
+        labels: maquinaLabels,
+        datasets: [{
+          label: "Taxa de Conclusão (%)",
+          data: maquinaTaxas,
+          backgroundColor: "#2f9e44",
+          borderColor: "#1b5e2b",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            title: { display: true, text: 'Taxa (%)' }
+          },
+          x: { title: { display: true, text: 'Tipo de Máquina' } }
+        }
+      }
+    });
+  }
+  
+  const empresasArray = Array.from(empresasMap.entries()).slice(0, 10);
+  if(empresasArray.length > 0){
+    const empresaLabels = empresasArray.map(e => e[0]);
+    const empresaTaxas = empresasArray.map(e => 
+      e[1].total > 0 ? Math.round((e[1].concluidas / e[1].total) * 100) : 0
+    );
+    
+    if(charts.conclusaoEmpresa) destroyChart(charts.conclusaoEmpresa);
+    charts.conclusaoEmpresa = new Chart($("chartConclusaoEmpresa"), {
+      type: "bar",
+      data: {
+        labels: empresaLabels,
+        datasets: [{
+          label: "Taxa de Conclusão (%)",
+          data: empresaTaxas,
+          backgroundColor: "#005c8f",
+          borderColor: "#0b2235",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            title: { display: true, text: 'Taxa (%)' }
+          },
+          x: { title: { display: true, text: 'Empresa' } }
+        }
+      }
+    });
+  }
+  
+  const equipamentosMap = new Map();
+  for(const a of list){
+    const equipamento = a.equipment || "Não informado";
+    if(!equipamentosMap.has(equipamento)){
+      equipamentosMap.set(equipamento, {total:0, concluidas:0, parciais:0});
+    }
+    const eq = equipamentosMap.get(equipamento);
+    eq.total++;
+    if(norm(a.status) === "concluída" || norm(a.status) === "concluida"){
+      eq.concluidas++;
+    } else if (norm(a.status) === "parcial") {
+      eq.parciais++;
+    }
+  }
+  
+  const equipamentosArray = Array.from(equipamentosMap.entries()).sort((a,b) => b[1].total - a[1].total);
+  const tb = $("tblAderenciaEquipamentos");
+  tb.innerHTML = "";
+  
+  for(const [equipamento, dados] of equipamentosArray){
+    const taxa = dados.total > 0 ? Math.round((dados.concluidas / dados.total) * 100) : 0;
+    const statusClass = taxa >= 80 ? "text-success" : taxa >= 50 ? "text-warning" : "text-danger";
+    
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><b>${equipamento}</b></td>
+      <td>${dados.total}</td>
+      <td>${dados.concluidas}</td>
+      <td>${dados.parciais}</td>
+      <td class="${statusClass} fw-bold">${taxa}%</td>
+      <td>
+        <span class="badge ${taxa >= 80 ? 'bg-success' : taxa >= 50 ? 'bg-warning' : 'bg-danger'}">
+          ${taxa >= 80 ? 'Bom' : taxa >= 50 ? 'Regular' : 'Crítico'}
+        </span>
+      </td>
+    `;
+    tb.appendChild(tr);
+  }
+}
+
+/* =========================================================
+   Exportar Aderência para PDF
+========================================================= */
+async function exportAderenciaPDF(){
+  try{
+    await calcularAderencia();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:"portrait", unit:"mm", format:"a4"});
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    
+    pdf.setFontSize(16);
+    pdf.text("Relatório de Aderência • Mini Máquinas", margin, margin);
+    pdf.setFontSize(10);
+    pdf.text(`Período: ${dateRangeLabel()} • Gerado em: ${new Date().toLocaleString("pt-BR")}`, margin, margin+8);
+    
+    let y = margin + 15;
+    
+    const aderenciaSection = $("tab-aderencia");
+    if (aderenciaSection) {
+      const cloneSection = aderenciaSection.cloneNode(true);
+      cloneSection.style.display = "block";
+      cloneSection.style.position = "absolute";
+      cloneSection.style.left = "-9999px";
+      cloneSection.style.top = "0";
+      cloneSection.style.width = "800px";
+      cloneSection.style.background = "white";
+      document.body.appendChild(cloneSection);
+      
+      try {
+        const canvas = await html2canvas(cloneSection, { 
+          scale: 2, 
+          backgroundColor: "#ffffff",
+          logging: false,
+          allowTaint: false,
+          useCORS: true,
+          windowWidth: 800
+        });
+        
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const imgW = pageW - margin*2;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        
+        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+        y += imgH + 8;
+      } finally {
+        document.body.removeChild(cloneSection);
+      }
+    }
+    
+    if (y <= margin + 20) {
+      const progressContainer = document.querySelector('.progress-container');
+      if (progressContainer) {
+        const canvas = await html2canvas(progressContainer, { scale: 2, backgroundColor: "#ffffff" });
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const imgW = pageW - margin*2;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+        y += imgH + 8;
+      }
+      
+      const aderenciaGrid = document.querySelector('.aderencia-grid');
+      if (aderenciaGrid) {
+        const canvas = await html2canvas(aderenciaGrid, { scale: 2, backgroundColor: "#ffffff" });
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const imgW = pageW - margin*2;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        if (y + imgH > pageH - 20) { pdf.addPage(); y = margin; }
+        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+        y += imgH + 8;
+      }
+      
+      const chartsGrid = document.querySelector('.grid2.mt-4');
+      if (chartsGrid) {
+        const canvas = await html2canvas(chartsGrid, { scale: 2, backgroundColor: "#ffffff" });
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const imgW = pageW - margin*2;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        if (y + imgH > pageH - 20) { pdf.addPage(); y = margin; }
+        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+        y += imgH + 8;
+      }
+      
+      const tableCard = document.querySelector('.cardX.mt-4');
+      if (tableCard) {
+        const canvas = await html2canvas(tableCard, { scale: 2, backgroundColor: "#ffffff" });
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const imgW = pageW - margin*2;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        if (y + imgH > pageH - 20) { pdf.addPage(); y = margin; }
+        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+      }
+    }
+    
+    pdf.save(`Aderencia_MiniMaquinas_${todayISO()}.pdf`);
+    toast("Relatório de Aderência exportado!");
+    
+  }catch(err){
+    console.error("Erro ao exportar aderência:", err);
+    toast("Falha ao exportar o relatório de Aderência.");
+  }
+}
+
+$("btnExportAderencia").addEventListener("click", exportAderenciaPDF);
+
+/* =========================================================
+   Relatórios
+========================================================= */
+let lastReport = {
+  list: [],
+  pdfBlob: null,
+  pdfFileName: ""
+};
+
+function reportHeaderFill(prefPlanner, prefCompany, prefShiftStart, prefShiftEnd, list){
+  const planner = prefPlanner || (list[0]?.planner || "—");
+  const company = prefCompany || (filters.company ? filters.company : (list[0]?.company || "—"));
+  const shiftStart = prefShiftStart || (list[0]?.shiftStart || "—");
+  const shiftEnd = prefShiftEnd || (list[0]?.shiftEnd || "—");
+  const shiftInfo = shiftStart ? 
+    (shiftEnd && shiftStart !== shiftEnd ? `${shiftStart} → ${shiftEnd}` : shiftStart) : "—";
+
+  $("reportPlanner").textContent = planner || "—";
+  $("reportCompany").textContent = company || "—";
+  $("reportShift").textContent = shiftInfo || "—";
+}
+
+function buildReportPhotos(list){
+  const wrap = $("reportPhotos");
+  wrap.innerHTML = "";
+  let countBlocks=0;
+
+  for(const a of list){
+    const b = a.photosBefore || [];
+    const af = a.photosAfter || [];
+    if(b.length===0 && af.length===0) continue;
+
+    countBlocks++;
+    const block=document.createElement("div");
+    block.style.border="1px solid #e5e7eb";
+    block.style.borderRadius="12px";
+    block.style.padding="10px";
+    block.style.marginBottom="10px";
+
+    const head=document.createElement("div");
+    head.innerHTML = `
+      <div style="font-weight:800;color:#0b2235">OS: ${a.osNumber || "—"} - ${a.machine} • ${a.equipment}</div>
+      <div style="font-size:12px;color:#374151">${a.title || "—"} • ${a.location||"—"} • ${fmtDate(a.start)}→${fmtDate(a.end)} • ${a.status||"—"}</div>
+      <div style="font-size:12px;color:#374151;margin-top:4px"><b>Atividade:</b> ${a.desc||"—"}</div>
+      ${(a.status === "Parcial" || a.status === "Pendente") ? `<div style="font-size:12px;color:#e03131;margin-top:4px"><b>Motivo:</b> ${a.motivo || "—"} - ${a.motivoDetalhado || ""}</div>` : ""}
+    `;
+    block.appendChild(head);
+
+    const grid=document.createElement("div");
+    grid.style.display="grid";
+    grid.style.gridTemplateColumns="1fr 1fr";
+    grid.style.gap="10px";
+    grid.style.marginTop="10px";
+
+    const colBefore=document.createElement("div");
+    colBefore.innerHTML = `<div style="font-weight:800;font-size:12px;margin-bottom:6px">ANTES (${b.length})</div>`;
+    colBefore.appendChild(makePhotoStrip(b));
+
+    const colAfter=document.createElement("div");
+    colAfter.innerHTML = `<div style="font-weight:800;font-size:12px;margin-bottom:6px">DEPOIS (${af.length})</div>`;
+    colAfter.appendChild(makePhotoStrip(af));
+
+    grid.appendChild(colBefore);
+    grid.appendChild(colAfter);
+    block.appendChild(grid);
+
+    wrap.appendChild(block);
+  }
+
+  if(countBlocks===0){
+    wrap.innerHTML = `<div class="small text-muted">Sem fotos anexadas no conjunto filtrado.</div>`;
+  }
+}
+
+function makePhotoStrip(arr){
+  const d=document.createElement("div");
+  d.style.display="flex";
+  d.style.flexWrap="wrap";
+  d.style.gap="6px";
+  for(const p of arr.slice(0,10)){
+    const img=document.createElement("img");
+    img.src=p.dataUrl;
+    img.style.width="155px";
+    img.style.height="110px";
+    img.style.objectFit="cover";
+    img.style.borderRadius="10px";
+    img.style.border="1px solid #e5e7eb";
+    d.appendChild(img);
+  }
+  if(arr.length>10){
+    const note=document.createElement("div");
+    note.style.fontSize="12px";
+    note.style.color="#6b7280";
+    note.textContent = `(+${arr.length-10} foto(s) não exibida(s) no PDF para manter leve)`;
+    d.appendChild(note);
+  }
+  return d;
+}
+
+$("btnBuildReport").addEventListener("click", async ()=>{
+  const all = await getAllActivities();
+  readFiltersUI();
+  const filtered = applyFilters(all).sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
+  let list = filtered;
+  if(typeof selectedIds !== "undefined" && selectedIds && selectedIds.size>0){
+    list = filtered.filter(a=> selectedIds.has(a.id));
+  }
+  lastReport.list = list;
+
+  $("reportPeriod").textContent = `Período: ${dateRangeLabel()}`;
+  $("reportMeta").textContent = `Gerado em: ${new Date().toLocaleString("pt-BR")}`;
+
+  const prefPlanner = await getPref("planner");
+  const prefCompany = await getPref("company");
+  const prefShiftStart = await getPref("shiftStart");
+  const prefShiftEnd = await getPref("shiftEnd");
+  reportHeaderFill(prefPlanner, prefCompany, prefShiftStart, prefShiftEnd, list);
+
+  const total=list.length;
+  const done=list.filter(a=>norm(a.status)==="concluída"||norm(a.status)==="concluida").length;
+  const parcial=list.filter(a=>norm(a.status)==="parcial").length;
+  const pending=total-done;
+  const faltamMaquina = list.filter(a=> 
+    (a.status==="Parcial"||a.status==="Pendente") && a.motivo==="Falta de máquina"
+  ).length;
+  
+  $("reportKpis").innerHTML = `
+    <div>• Total: <b>${total}</b></div>
+    <div>• Concluídas: <b>${done}</b></div>
+    <div>• Parciais: <b>${parcial}</b></div>
+    <div>• Pendências: <b>${pending}</b></div>
+    <div>• Falta máquina: <b>${faltamMaquina}</b></div>
+  `;
+
+  const topMachines = countBy(list,a=>a.machine).slice(0,3).map(x=>`${x[0]} (${x[1]})`).join(" • ") || "—";
+  const topCompanies = countBy(list,a=>a.company).slice(0,3).map(x=>`${x[0]} (${x[1]})`).join(" • ") || "—";
+  $("reportSummary").innerHTML = `
+    <div>• Principais tipos de máquina: <b>${topMachines}</b></div>
+    <div>• Principais empresas: <b>${topCompanies}</b></div>
+    <div>• Observação: relatório mostra as atividades conforme filtros aplicados.</div>
+  `;
+
+  const tb=$("reportTable");
+  tb.innerHTML="";
+  list.forEach((a,idx)=>{
+    const shiftInfo = a.shiftStart ? 
+      (a.shiftEnd && a.shiftStart !== a.shiftEnd ? 
+        `${a.shiftStart} → ${a.shiftEnd}` : a.shiftStart) : "—";
+    
+    const motivoCell = (a.status === "Parcial" || a.status === "Pendente") ? 
+      `<span class="small text-danger">${a.motivo || "—"}</span>` : "—";
+    
+    const tr=document.createElement("tr");
+    tr.innerHTML = `
+      <td class="fw-bold">${a.osNumber || "—"}</td>
+      <td>${idx+1}</td>
+      <td><b>${a.title||"—"}</b><br><span class="small">${a.machine} • ${a.equipment}</span>${a.responsible?("<br><span class=\"small\"><b>Resp.:</b> "+a.responsible+"</span>"):""}${a.priority?("<br><span class=\"small\"><b>Prior.:</b> "+a.priority+"</span>"):""} </td>
+      <td>${a.location||"—"}</td>
+      <td class="mono">${fmtDate(a.start)} → ${fmtDate(a.end)}</td>
+      <td>${a.status||"—"}</td>
+      <td>${motivoCell}</td>
+      <td>${a.company||"—"}${shiftInfo?(" • "+shiftInfo):""}${a.planner?("<br><span class=\"small\"><b>Prog.:</b> "+a.planner+"</span>"):""}</td>
+    `;
+    tb.appendChild(tr);
+  });
+
+  buildReportPhotos(list);
+
+  const ok = list.length>0;
+  $("btnExportPDF").disabled = !ok;
+  $("btnExportExcel").disabled = !ok;
+  $("btnSharePDF").disabled = !ok;
+  $("btnMailto").disabled = !ok;
+  toast(ok ? "Relatório montado." : "Nenhuma atividade nos filtros.");
+});
+
+async function renderReportToPDFBlob(){
+  const el = $("reportArea");
+  const canvas = await html2canvas(el, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+  const imgData = canvas.toDataURL("image/jpeg", 0.92);
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p","mm","a4");
+
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+
+  const imgW = pageW;
+  const imgH = canvas.height * (imgW / canvas.width);
+
+  if(imgH <= pageH){
+    pdf.addImage(imgData, "JPEG", 0, 0, imgW, imgH);
+  } else {
+    let remaining = imgH;
+    let position = 0;
+    while(remaining > 0){
+      pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH);
+      remaining -= pageH;
+      position -= pageH;
+      if(remaining > 0) pdf.addPage();
+    }
+  }
+
+  const blob = pdf.output("blob");
+  return blob;
+}
+
+$("btnExportPDF").addEventListener("click", async ()=>{
+  if(!lastReport.list?.length) return;
+
+  toast("Gerando PDF...");
+  const blob = await renderReportToPDFBlob();
+
+  const name = `Relatorio_MiniMaquinas_${todayISO()}.pdf`;
+  lastReport.pdfBlob = blob;
+  lastReport.pdfFileName = name;
+
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+
+  toast("PDF baixado.");
+});
+
+$("btnSharePDF").addEventListener("click", async ()=>{
+  if(!lastReport.list?.length) return;
+
+  if(!lastReport.pdfBlob){
+    toast("Gerando PDF para compartilhar...");
+    lastReport.pdfBlob = await renderReportToPDFBlob();
+    lastReport.pdfFileName = `Relatorio_MiniMaquinas_${todayISO()}.pdf`;
+  }
+
+  if(navigator.share && navigator.canShare){
+    const file = new File([lastReport.pdfBlob], lastReport.pdfFileName, { type:"application/pdf" });
+    try{
+      await navigator.share({
+        title: "Relatório • Mini Máquinas",
+        text: "Segue relatório em PDF.",
+        files: [file]
+      });
+      toast("Compartilhado.");
+    }catch(err){
+      toast("Compartilhamento cancelado ou não suportado.");
+    }
+  } else {
+    toast("Seu navegador não suporta compartilhar arquivo. Use o PDF baixado.");
+  }
+});
+
+$("btnMailto").addEventListener("click", ()=>{
+  if(!lastReport.list?.length) return;
+
+  const total=lastReport.list.length;
+  const done=lastReport.list.filter(a=>norm(a.status)==="concluída"||norm(a.status)==="concluida").length;
+  const parcial=lastReport.list.filter(a=>norm(a.status)==="parcial").length;
+  const pending=total-done;
+  const faltamMaquina = lastReport.list.filter(a=> 
+    (a.status==="Parcial"||a.status==="Pendente") && a.motivo==="Falta de máquina"
+  ).length;
+
+  const subject = `Relatório Mini Máquinas • ${todayISO()}`;
+  const body =
+`Olá,
+
+Segue resumo do relatório (anexar PDF gerado pelo app):
+
+Período: ${dateRangeLabel()}
+Total: ${total}
+Concluídas: ${done}
+Parciais: ${parcial}
+Pendências: ${pending}
+Falta de máquina: ${faltamMaquina}
+
+Atividades (top):
+${lastReport.list.slice(0,10).map((a,i)=>`${i+1}. OS: ${a.osNumber || "—"} - ${a.machine} • ${a.equipment} • ${a.status} • ${fmtDate(a.start)}→${fmtDate(a.end)} • ${a.title}`).join("\n")}
+
+Att,`;
+
+  const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(url, '_blank');
+});
+
+$("btnExportExcel").addEventListener("click", async ()=>{
+  if(!lastReport.list?.length) return;
+
+  const rows = lastReport.list.map(a=>({
+    OS: a.osNumber || "—",
+    Tipo_Maquina: a.machine,
+    Equipamento: a.equipment,
+    Local: a.location,
+    Titulo: a.title,
+    Responsavel: a.responsible,
+    Prioridade: a.priority,
+    Descricao: a.desc,
+    Data_Inicial: a.start,
+    Data_Final: a.end,
+    Status: a.status,
+    Motivo: a.motivo || "—",
+    Motivo_Detalhado: a.motivoDetalhado || "—",
+    Programador: a.planner,
+    Empresa: a.company,
+    Turno_Inicio: a.shiftStart,
+    Turno_Termino: a.shiftEnd,
+    Fotos_Antes: (a.photosBefore||[]).length,
+    Fotos_Depois: (a.photosAfter||[]).length,
+    Atualizado_em: new Date(a.updatedAt||a.createdAt).toLocaleString("pt-BR")
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Atividades");
+
+  const name = `Atividades_MiniMaquinas_${todayISO()}.xlsx`;
+  XLSX.writeFile(wb, name);
+  toast("Excel exportado.");
+});
+
+/* =========================================================
+   Configurações
+========================================================= */
+$("btnSavePrefs").addEventListener("click", async ()=>{
+  await setPref("planner", $("prefPlanner").value || "");
+  await setPref("company", $("prefCompany").value || "");
+  await setPref("shiftStart", $("prefShiftStart").value || "");
+  await setPref("shiftEnd", $("prefShiftEnd").value || "");
+  toast("Preferências salvas.");
+});
+
+$("btnBackupJSON").addEventListener("click", async ()=>{
+  const activities = await getAllActivities();
+  const prefs = {
+    planner: await getPref("planner"),
+    company: await getPref("company"),
+    shiftStart: await getPref("shiftStart"),
+    shiftEnd: await getPref("shiftEnd"),
+  };
+  const payload = { version:"v6", exportedAt: Date.now(), prefs, activities };
+  const blob = new Blob([JSON.stringify(payload,null,2)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download = `Backup_MiniMaquinas_${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+  toast("Backup JSON baixado.");
+});
+
+$("restoreJSON").addEventListener("change", async (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  if(!confirm("Restaurar backup vai mesclar registros. Continuar?")) return;
+
+  const txt = await f.text();
+  let data=null;
+  try{ data=JSON.parse(txt); }catch(err){ toast("JSON inválido."); return; }
+
+  if(data.prefs){
+    await setPref("planner", data.prefs.planner||"");
+    await setPref("company", data.prefs.company||"");
+    await setPref("shiftStart", data.prefs.shiftStart||"");
+    await setPref("shiftEnd", data.prefs.shiftEnd||"");
+  }
+
+  const list = data.activities||[];
+  for(const a of list){
+    a.photosBefore = a.photosBefore || [];
+    a.photosAfter = a.photosAfter || [];
+    a.updatedAt = a.updatedAt || Date.now();
+    if(a.shift && !a.shiftStart) a.shiftStart = a.shift;
+    if(!a.shiftEnd) a.shiftEnd = "";
+    if(!a.osNumber) a.osNumber = generateOSNumber();
+    await putActivity(a);
+  }
+
+  await loadPrefsToUI();
+  await refreshTable();
+  await refreshDashboard();
+  await loadPhotoSelect();
+  await calcularAderencia();
+  toast("Backup restaurado.");
+  e.target.value="";
+});
+
+$("btnWipeDB").addEventListener("click", async ()=>{
+  if(!confirm("Apagar TODO o banco local (atividades e fotos) deste dispositivo?")) return;
+  await wipeDB();
+  toast("Banco limpo.");
+  await loadPrefsToUI();
+  await refreshTable();
+  await refreshDashboard();
+  await loadPhotoSelect();
+  await calcularAderencia();
+});
+
+/* =========================================================
+   Inicialização
+========================================================= */
+async function loadPrefsToUI(){
+  $("prefPlanner").value = await getPref("planner");
+  $("prefCompany").value = await getPref("company");
+  $("prefShiftStart").value = await getPref("shiftStart");
+  $("prefShiftEnd").value = await getPref("shiftEnd");
+
+  $("newPlanner").value = $("prefPlanner").value || "";
+  $("newCompany").value = $("prefCompany").value || "";
+  $("newShiftStart").value = $("prefShiftStart").value || "";
+  $("newShiftEnd").value = $("prefShiftEnd").value || "";
+
+  if(!$("fStart").value && !$("fEnd").value){
+    const s = new Date();
+    const e = new Date();
+    e.setDate(e.getDate()+6);
+    const toISO=(d)=>{
+      const pad=n=>String(n).padStart(2,"0");
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    };
+    $("fStart").value = toISO(s);
+    $("fEnd").value = toISO(e);
+  }
+  readFiltersUI();
+}
+
+async function seedInitialWeekIfEmpty(){
+  const all = await getAllActivities();
+  if(all.length>0) return;
+
+  const titles = [
+    "Calda da CV 72",
+    "Laterais do Hopper 12",
+    "Acesso da CV 72",
+    "Acesso subindo a 009",
+    "Contra peso da CV 009",
+    "Contra peso da CV 002",
+    "Calda da CV 009",
+    "Calda da CV 002",
+    "Laterais do Hopper 19",
+    "Calda da CV 67",
+    "Calda da CV 69",
+    "Calda da CV 68",
+    "Calda da CV 73"
+  ];
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate()+1);
+  const startWeek = new Date(tomorrow);
+  const perDay = 2;
+
+  const planner = (await getPref("planner")) || "Programador";
+  const company = (await getPref("company")) || "Empresa";
+  const shiftStart = (await getPref("shiftStart")) || "A";
+  const shiftEnd = (await getPref("shiftEnd")) || "A";
+
+  for(let i=0;i<titles.length;i++){
+    const d0 = new Date(startWeek);
+    d0.setDate(d0.getDate()+Math.floor(i/perDay));
+    const d1 = new Date(d0);
+
+    const iso = (d)=> d.toISOString().slice(0,10);
+    const t = titles[i];
+    const loc = (t.match(/CV\s*\d+/i)?.[0] || t.match(/Hopper\s*\d+/i)?.[0] || "").replace(/\s+/g," ").trim();
+
+    const a = {
+      id: uid(),
+      osNumber: generateOSNumber(),
+      machine: "Mini Máquina",
+      equipment: "MM-01",
+      location: loc,
+      title: t,
+      responsible: "",
+      priority: "Média",
+      desc: "",
+      start: iso(d0),
+      end: iso(d1),
+      status: "Programada",
+      planner,
+      company,
+      shiftStart,
+      shiftEnd,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      photosBefore: [],
+      photosAfter: []
+    };
+    await putActivity(a);
+  }
+  toast("Semana inicial carregada. Ajuste os detalhes e anexe as fotos.");
+}
+
+/* =========================================================
+   Inicializar App
+========================================================= */
+(async function init(){
+  setupEquipmentSelection();
+  setupEditEquipmentSelection();
+  await loadPrefsToUI();
+  await seedInitialWeekIfEmpty();
+  await refreshTable();
+  await loadPhotoSelect();
+  await refreshDashboard();
+  await calcularAderencia();
+  toast("App pronto. Dados compartilhados via Firebase!");
+})();
 </script>
 </body>
 </html>
