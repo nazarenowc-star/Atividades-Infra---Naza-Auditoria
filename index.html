@@ -298,6 +298,11 @@
 #pinErrorMsg{ color:#c92a2a; margin-top:10px; font-weight:700; font-size:12px; min-height: 16px; }
 
 </style>
+
+    <!-- Firebase (compat) for GitHub Pages / no-bundler -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 </head>
 
 <body>
@@ -1903,12 +1908,17 @@ function tx(store, mode="readonly"){
 }
 
 async function putActivity(a){
+    // grava também na nuvem
+    try{ a.updatedAt = Date.now(); a.updatedBy = CLIENT_ID; }catch(e){}
   return new Promise((resolve,reject)=>{
     const req=tx("activities","readwrite").put(a);
     req.onsuccess=()=>resolve(true);
     req.onerror=()=>reject(req.error);
   });
-}
+
+    // envia para nuvem (não bloqueia a UI)
+    cloudUpsertActivity(a);
+  }
 async function getActivity(id){
   return new Promise((resolve,reject)=>{
     const req=tx("activities").get(id);
@@ -1934,7 +1944,10 @@ async function deleteActivities(ids){
       req.onerror=()=>reject(req.error);
     });
   });
-}
+
+    // exclui também na nuvem
+    try{ (ids||[]).forEach(id=>cloudDeleteActivity(id)); }catch(e){}
+  }
 async function wipeDB(){
   db.close();
   await new Promise((resolve,reject)=>{
@@ -3924,8 +3937,13 @@ async function seedInitialWeekIfEmpty(){
    Inicializar App
 ========================================================= */
 (async function init(){
-  await openDB();
-  setupEquipmentSelection();
+    await openDB();
+
+    // inicia Firebase/Firestore e faz pull inicial da nuvem (sem mexer no front)
+    initCloud();
+    await cloudPullAll(openDB);
+
+setupEquipmentSelection();
   setupEditEquipmentSelection();
   await loadPrefsToUI();
   await seedInitialWeekIfEmpty();
@@ -3943,7 +3961,159 @@ async function seedInitialWeekIfEmpty(){
      ========================= -->
 <script>
 (function(){
-  const PIN_CORRETO = "1234"; // <<< TROQUE AQUI (4 números)
+  
+  // ---------------------------
+  // Sync em Nuvem (Firestore)
+  // ---------------------------
+  // Observação: o FRONT foi mantido. Isso só adiciona gravação/leitura na nuvem,
+  // mantendo o IndexedDB local como cache/offline.
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDdCf-WvW7bNlxJq9gQPIANlxOO-D5sXHo",
+    authDomain: "atividades-infra---naza-audit.firebaseapp.com",
+    projectId: "atividades-infra---naza-audit",
+    storageBucket: "atividades-infra---naza-audit.firebasestorage.app",
+    messagingSenderId: "730232324649",
+    appId: "1:730232324649:web:093e4f05d61fc4bf375238"
+  };
+
+  // Coleção: gerada automaticamente e estável (evita conflito entre apps/projetos)
+  const CLOUD_COLLECTION = (() => {
+    const pid = (firebaseConfig.projectId || "infra").toLowerCase().replace(/[^a-z0-9]+/g,"_");
+    return `infra_atividades__${pid}`;
+  })();
+
+  // ID do cliente (para resolver conflitos simples)
+  const CLIENT_ID = (() => {
+    try{
+      const k = "INFRA_CLIENT_ID";
+      let v = localStorage.getItem(k);
+      if(!v){
+        v = "c_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+        localStorage.setItem(k, v);
+      }
+      return v;
+    }catch(e){
+      return "c_" + Math.random().toString(16).slice(2);
+    }
+  })();
+
+  let firestore = null;
+  let cloudReady = false;
+
+  function initCloud(){
+    try{
+      if(!window.firebase || !firebase.initializeApp){ return; }
+      if(firebase.apps && firebase.apps.length){
+        // já inicializado
+      } else {
+        firebase.initializeApp(firebaseConfig);
+      }
+      firestore = firebase.firestore();
+      // Evita erro com undefined
+      try{ firestore.settings({ ignoreUndefinedProperties: true }); }catch(e){}
+      cloudReady = true;
+    }catch(e){
+      cloudReady = false;
+      console.warn("Cloud desativada (Falha ao inicializar Firebase):", e);
+    }
+  }
+
+  // Salva/atualiza um registro na nuvem
+  async function cloudUpsertActivity(activity){
+    if(!cloudReady || !firestore) return;
+    if(!activity || !activity.id) return;
+
+    const now = Date.now();
+    const payload = {
+      ...activity,
+      _cloud: {
+        updatedAt: now,
+        updatedBy: CLIENT_ID,
+        projectId: firebaseConfig.projectId,
+        app: "infra"
+      }
+    };
+
+    // Garante campos úteis para merge local
+    payload.updatedAt = now;
+    payload.updatedBy = CLIENT_ID;
+
+    try{
+      await firestore.collection(CLOUD_COLLECTION).doc(String(activity.id)).set(payload, { merge: true });
+    }catch(e){
+      console.warn("Falha ao gravar na nuvem:", e);
+    }
+  }
+
+  async function cloudDeleteActivity(id){
+    if(!cloudReady || !firestore) return;
+    if(id === undefined || id === null) return;
+    try{
+      await firestore.collection(CLOUD_COLLECTION).doc(String(id)).delete();
+    }catch(e){
+      console.warn("Falha ao excluir na nuvem:", e);
+    }
+  }
+
+  // Puxa tudo da nuvem e faz UPSERT no IndexedDB local (last-write-wins por updatedAt)
+  async function cloudPullAll(openDbFn){
+    if(!cloudReady || !firestore) return;
+    if(typeof openDbFn !== "function") return;
+
+    try{
+      const snap = await firestore.collection(CLOUD_COLLECTION).get();
+      if(snap.empty) return;
+
+      const db = await openDbFn();
+      const items = [];
+      snap.forEach(doc=>{
+        const data = doc.data();
+        if(data && data.id !== undefined && data.id !== null) items.push(data);
+        else {
+          // fallback: usa id do doc
+          items.push({ ...data, id: doc.id });
+        }
+      });
+
+      // Merge para IndexedDB
+      // Estratégia: se local não tem, grava. Se tem, compara updatedAt.
+      await new Promise((resolve, reject)=>{
+        const tx = db.transaction(["activities"], "readwrite");
+        const store = tx.objectStore("activities");
+
+        let pending = items.length;
+        if(pending === 0){ resolve(); return; }
+
+        items.forEach(it=>{
+          const req = store.get(it.id);
+          req.onsuccess = ()=>{
+            const cur = req.result;
+            const curU = cur && (cur.updatedAt || (cur._cloud && cur._cloud.updatedAt)) || 0;
+            const itU  = it.updatedAt  || (it._cloud && it._cloud.updatedAt) || 0;
+
+            if(!cur || itU >= curU){
+              // grava/atualiza
+              try{ store.put(it); }catch(e){}
+            }
+            pending--;
+            if(pending===0) resolve();
+          };
+          req.onerror = ()=>{
+            pending--;
+            if(pending===0) resolve();
+          };
+        });
+
+        tx.oncomplete = ()=>{};
+        tx.onerror = ()=>{ reject(tx.error); };
+      });
+
+    }catch(e){
+      console.warn("Falha ao ler nuvem:", e);
+    }
+  }
+const PIN_CORRETO = "1234"; // <<< TROQUE AQUI (4 números)
 
   function byId(id){ return document.getElementById(id); }
 
@@ -4032,4 +4202,5 @@ async function seedInitialWeekIfEmpty(){
 
 </body>
 </html>
+
 
