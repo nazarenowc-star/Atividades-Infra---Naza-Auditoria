@@ -297,11 +297,6 @@
 .lock-box button.secondary{ background:#e9ecef; color:#0b2235; }
 #pinErrorMsg{ color:#c92a2a; margin-top:10px; font-weight:700; font-size:12px; min-height: 16px; }
 
-
-
-/* Drag & drop (reordenação) */
-.infra-dnd-row{ cursor: grab; }
-.infra-dnd-row.dragging{ opacity: .6; cursor: grabbing; }
 </style>
 </head>
 
@@ -1928,122 +1923,6 @@ async function getAllActivities(){
     req.onerror=()=>reject(req.error);
   });
 }
-
-
-/** ===== Ordenação (0,1,2,3...) + Reordenar arrastando (Kanban simples) ===== **/
-let __ORDER_NORMALIZED__ = false;
-let __ACT_BY_ID__ = new Map();
-
-function __numOrNull(v){
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-function __sortByOrderThenTime(a,b){
-  const oa = __numOrNull(a.ordem);
-  const ob = __numOrNull(b.ordem);
-  if(oa!==null && ob!==null) return oa-ob;
-  if(oa!==null) return -1;
-  if(ob!==null) return 1;
-  // fallback antigo
-  const sa=(a.start||""); const sb=(b.start||"");
-  if(sa!==sb) return sa.localeCompare(sb);
-  return (a.createdAt||"").localeCompare(b.createdAt||"");
-}
-
-async function __applyGlobalOrderWithFront(frontIds){
-  const all = await getAllActivities();
-  
-  await __ensureOrdersExistOnce();
-  __ACT_BY_ID__ = new Map(all.map(x=>[x.id,x]));
-const byId = new Map(all.map(x=>[x.id,x]));
-  const used = new Set(frontIds.filter(id=>byId.has(id)));
-  const rest = all.filter(x=>!used.has(x.id)).sort(__sortByOrderThenTime);
-  const combined = [...frontIds.filter(id=>byId.has(id)).map(id=>byId.get(id)), ...rest];
-
-  let changed = 0;
-  for(let i=0;i<combined.length;i++){
-    const it = combined[i];
-    if(__numOrNull(it.ordem)!==i){
-      it.ordem = i;
-      await putActivity(it);
-      changed++;
-    }
-  }
-  __ORDER_NORMALIZED__ = true;
-  // atualiza cache
-  __ACT_BY_ID__ = new Map((await getAllActivities()).map(x=>[x.id,x]));
-  return changed;
-}
-
-async function __ensureOrdersExistOnce(){
-  if(__ORDER_NORMALIZED__) return;
-  const all = await getAllActivities();
-  // se já existe ordem em todos, só marca
-  const missing = all.some(x=>__numOrNull(x.ordem)===null);
-  if(!missing){ __ORDER_NORMALIZED__ = true; __ACT_BY_ID__ = new Map(all.map(x=>[x.id,x])); return; }
-  // normaliza pela ordem atual (start/createdAt)
-  await __applyGlobalOrderWithFront([]);
-}
-
-async function __getNextOrder(){
-  await __ensureOrdersExistOnce();
-  const all = await getAllActivities();
-  let max = -1;
-  for(const a of all){
-    const o = __numOrNull(a.ordem);
-    if(o!==null && o>max) max=o;
-  }
-  return max+1;
-}
-
-function __enableRowDnD(tbody){
-  // só na aba Programação (lista) para manter o resto intacto
-  const rows = Array.from(tbody.querySelectorAll("tr[data-id]"));
-  if(!rows.length) return;
-
-  let dragRow = null;
-
-  rows.forEach(tr=>{
-    tr.setAttribute("draggable","true");
-    tr.classList.add("infra-dnd-row");
-    tr.addEventListener("dragstart", (e)=>{
-      dragRow = tr;
-      tr.classList.add("dragging");
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", tr.dataset.id || "");
-    });
-    tr.addEventListener("dragend", ()=>{
-      tr.classList.remove("dragging");
-      dragRow = null;
-    });
-    tr.addEventListener("dragover", (e)=>{
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      const dragging = tbody.querySelector("tr.dragging");
-      if(!dragging || dragging===tr) return;
-      const rect = tr.getBoundingClientRect();
-      const after = (e.clientY - rect.top) > rect.height/2;
-      if(after){
-        if(tr.nextSibling!==dragging) tbody.insertBefore(dragging, tr.nextSibling);
-      } else {
-        if(tr.previousSibling!==dragging) tbody.insertBefore(dragging, tr);
-      }
-    });
-    tr.addEventListener("drop", async (e)=>{
-      e.preventDefault();
-      // aplica ordem global: os que estão visíveis vão primeiro na sequência nova
-      const orderedIds = Array.from(tbody.querySelectorAll("tr[data-id]")).map(x=>x.dataset.id).filter(Boolean);
-      await __applyGlobalOrderWithFront(orderedIds);
-      // recarrega
-      refreshTable();
-      refreshDashboard();
-    });
-  });
-}
-
-/** ===== fim Ordenação ===== **/
-
-
 async function deleteActivities(ids){
   return new Promise((resolve,reject)=>{
     const store=tx("activities","readwrite");
@@ -2113,8 +1992,7 @@ async function filesToCompressedDataURLs(files){
   for(const f of files){
     const du = await fileToDataURL(f);
     const cdu = await compressDataURL(du);
-    out.push({ id: uid(),
-    ordem: await __getNextOrder(), name: f.name || "foto.jpg", dataUrl: cdu, ts: Date.now() });
+    out.push({ id: uid(), name: f.name || "foto.jpg", dataUrl: cdu, ts: Date.now() });
   }
   return out;
 }
@@ -2429,7 +2307,6 @@ $("btnDeleteSelected").addEventListener("click", async ()=>{
   if(selectedIds.size===0) return;
   if(!confirm(`Excluir ${selectedIds.size} atividade(s)?`)) return;
   await deleteActivities([...selectedIds]);
-  await __applyGlobalOrderWithFront([]);
   selectedIds.clear();
   $("chkAll").checked=false;
   updateDeleteSelectedBtn();
@@ -2444,7 +2321,7 @@ async function refreshTable(){
   const all = await getAllActivities();
   readFiltersUI();
   currentList = applyFilters(all)
-    .sort(__sortByOrderThenTime);
+    .sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
 
   selectedIds = new Set();
   $("chkAll").checked=false;
@@ -2469,11 +2346,10 @@ async function refreshTable(){
       `<span class="small text-muted">Motivo: ${a.motivo || "—"}</span>` : "";
 
     const row = document.createElement("tr");
-    row.dataset.id = a.id;
-row.innerHTML = `
+    row.innerHTML = `
       <td><input type="checkbox" class="rowChk" data-id="${a.id}"></td>
       <td>
-        <div class="fw-semibold"><span class="badge text-bg-secondary me-2">#${(a.ordem ?? "—")}</span>${a.osNumber || "OS pendente"} - ${a.title || a.desc || "—"}</div>
+        <div class="fw-semibold">${a.osNumber || "OS pendente"} - ${a.title || a.desc || "—"}</div>
         <div class="small text-muted">${a.machine} • ${a.equipment}${a.priority ? (" • Prioridade: "+a.priority) : ""}${a.responsible ? (" • Resp.: "+a.responsible) : ""}</div>
         <div class="small text-muted">${a.location ? ("📍 "+a.location) : ""}</div>
         <div class="small text-muted">${(a.title && a.desc) ? a.desc : ""}</div>
@@ -2653,7 +2529,7 @@ async function loadPhotoSelect(){
   opt0.value=""; opt0.textContent="Selecione...";
   sel.appendChild(opt0);
 
-  const sorted = all.sort(__sortByOrderThenTime);
+  const sorted = all.sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
   for(const a of sorted){
     const o=document.createElement("option");
     o.value=a.id;
@@ -2863,7 +2739,6 @@ function dateRangeLabel(){
   const s=filters.start, e=filters.end;
   if(s && e) return `${fmtDate(s)} → ${fmtDate(e)}`;
   return "— (use filtros para período)";
-  __enableRowDnD(tbody);
 }
 
 async function refreshDashboard(){
@@ -3356,8 +3231,7 @@ async function calcularAderencia(){
     const statusClass = taxa >= 80 ? "text-success" : taxa >= 50 ? "text-warning" : "text-danger";
     
     const tr = document.createElement("tr");
-    tr.dataset.id = a.id;
-tr.innerHTML = `
+    tr.innerHTML = `
       <td><b>${equipamento}</b></td>
       <td>${dados.total}</td>
       <td>${dados.concluidas}</td>
@@ -3641,7 +3515,7 @@ function makePhotoStrip(arr){
 $("btnBuildReport").addEventListener("click", async ()=>{
   const all = await getAllActivities();
   readFiltersUI();
-  const filtered = applyFilters(all).sort(__sortByOrderThenTime);
+  const filtered = applyFilters(all).sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
   // Se houver seleção na lista, monta relatório apenas das marcadas.
   let list = filtered;
   if(typeof selectedIds !== "undefined" && selectedIds && selectedIds.size>0){
