@@ -298,11 +298,6 @@
 #pinErrorMsg{ color:#c92a2a; margin-top:10px; font-weight:700; font-size:12px; min-height: 16px; }
 
 </style>
-
-    <!-- Firebase (compat) for GitHub Pages / no-bundler -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
 </head>
 
 <body>
@@ -1908,17 +1903,12 @@ function tx(store, mode="readonly"){
 }
 
 async function putActivity(a){
-    // grava também na nuvem
-    try{ a.updatedAt = Date.now(); a.updatedBy = CLIENT_ID; }catch(e){}
   return new Promise((resolve,reject)=>{
     const req=tx("activities","readwrite").put(a);
     req.onsuccess=()=>resolve(true);
     req.onerror=()=>reject(req.error);
   });
-
-    // envia para nuvem (não bloqueia a UI)
-    cloudUpsertActivity(a);
-  }
+}
 async function getActivity(id){
   return new Promise((resolve,reject)=>{
     const req=tx("activities").get(id);
@@ -1944,10 +1934,7 @@ async function deleteActivities(ids){
       req.onerror=()=>reject(req.error);
     });
   });
-
-    // exclui também na nuvem
-    try{ (ids||[]).forEach(id=>cloudDeleteActivity(id)); }catch(e){}
-  }
+}
 async function wipeDB(){
   db.close();
   await new Promise((resolve,reject)=>{
@@ -3937,13 +3924,8 @@ async function seedInitialWeekIfEmpty(){
    Inicializar App
 ========================================================= */
 (async function init(){
-    await openDB();
-
-    // inicia Firebase/Firestore e faz pull inicial da nuvem (sem mexer no front)
-    initCloud();
-    await cloudPullAll(openDB);
-
-setupEquipmentSelection();
+  await openDB();
+  setupEquipmentSelection();
   setupEditEquipmentSelection();
   await loadPrefsToUI();
   await seedInitialWeekIfEmpty();
@@ -3961,159 +3943,7 @@ setupEquipmentSelection();
      ========================= -->
 <script>
 (function(){
-  
-  // ---------------------------
-  // Sync em Nuvem (Firestore)
-  // ---------------------------
-  // Observação: o FRONT foi mantido. Isso só adiciona gravação/leitura na nuvem,
-  // mantendo o IndexedDB local como cache/offline.
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDdCf-WvW7bNlxJq9gQPIANlxOO-D5sXHo",
-    authDomain: "atividades-infra---naza-audit.firebaseapp.com",
-    projectId: "atividades-infra---naza-audit",
-    storageBucket: "atividades-infra---naza-audit.firebasestorage.app",
-    messagingSenderId: "730232324649",
-    appId: "1:730232324649:web:093e4f05d61fc4bf375238"
-  };
-
-  // Coleção: gerada automaticamente e estável (evita conflito entre apps/projetos)
-  const CLOUD_COLLECTION = (() => {
-    const pid = (firebaseConfig.projectId || "infra").toLowerCase().replace(/[^a-z0-9]+/g,"_");
-    return `infra_atividades__${pid}`;
-  })();
-
-  // ID do cliente (para resolver conflitos simples)
-  const CLIENT_ID = (() => {
-    try{
-      const k = "INFRA_CLIENT_ID";
-      let v = localStorage.getItem(k);
-      if(!v){
-        v = "c_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
-        localStorage.setItem(k, v);
-      }
-      return v;
-    }catch(e){
-      return "c_" + Math.random().toString(16).slice(2);
-    }
-  })();
-
-  let firestore = null;
-  let cloudReady = false;
-
-  function initCloud(){
-    try{
-      if(!window.firebase || !firebase.initializeApp){ return; }
-      if(firebase.apps && firebase.apps.length){
-        // já inicializado
-      } else {
-        firebase.initializeApp(firebaseConfig);
-      }
-      firestore = firebase.firestore();
-      // Evita erro com undefined
-      try{ firestore.settings({ ignoreUndefinedProperties: true }); }catch(e){}
-      cloudReady = true;
-    }catch(e){
-      cloudReady = false;
-      console.warn("Cloud desativada (Falha ao inicializar Firebase):", e);
-    }
-  }
-
-  // Salva/atualiza um registro na nuvem
-  async function cloudUpsertActivity(activity){
-    if(!cloudReady || !firestore) return;
-    if(!activity || !activity.id) return;
-
-    const now = Date.now();
-    const payload = {
-      ...activity,
-      _cloud: {
-        updatedAt: now,
-        updatedBy: CLIENT_ID,
-        projectId: firebaseConfig.projectId,
-        app: "infra"
-      }
-    };
-
-    // Garante campos úteis para merge local
-    payload.updatedAt = now;
-    payload.updatedBy = CLIENT_ID;
-
-    try{
-      await firestore.collection(CLOUD_COLLECTION).doc(String(activity.id)).set(payload, { merge: true });
-    }catch(e){
-      console.warn("Falha ao gravar na nuvem:", e);
-    }
-  }
-
-  async function cloudDeleteActivity(id){
-    if(!cloudReady || !firestore) return;
-    if(id === undefined || id === null) return;
-    try{
-      await firestore.collection(CLOUD_COLLECTION).doc(String(id)).delete();
-    }catch(e){
-      console.warn("Falha ao excluir na nuvem:", e);
-    }
-  }
-
-  // Puxa tudo da nuvem e faz UPSERT no IndexedDB local (last-write-wins por updatedAt)
-  async function cloudPullAll(openDbFn){
-    if(!cloudReady || !firestore) return;
-    if(typeof openDbFn !== "function") return;
-
-    try{
-      const snap = await firestore.collection(CLOUD_COLLECTION).get();
-      if(snap.empty) return;
-
-      const db = await openDbFn();
-      const items = [];
-      snap.forEach(doc=>{
-        const data = doc.data();
-        if(data && data.id !== undefined && data.id !== null) items.push(data);
-        else {
-          // fallback: usa id do doc
-          items.push({ ...data, id: doc.id });
-        }
-      });
-
-      // Merge para IndexedDB
-      // Estratégia: se local não tem, grava. Se tem, compara updatedAt.
-      await new Promise((resolve, reject)=>{
-        const tx = db.transaction(["activities"], "readwrite");
-        const store = tx.objectStore("activities");
-
-        let pending = items.length;
-        if(pending === 0){ resolve(); return; }
-
-        items.forEach(it=>{
-          const req = store.get(it.id);
-          req.onsuccess = ()=>{
-            const cur = req.result;
-            const curU = cur && (cur.updatedAt || (cur._cloud && cur._cloud.updatedAt)) || 0;
-            const itU  = it.updatedAt  || (it._cloud && it._cloud.updatedAt) || 0;
-
-            if(!cur || itU >= curU){
-              // grava/atualiza
-              try{ store.put(it); }catch(e){}
-            }
-            pending--;
-            if(pending===0) resolve();
-          };
-          req.onerror = ()=>{
-            pending--;
-            if(pending===0) resolve();
-          };
-        });
-
-        tx.oncomplete = ()=>{};
-        tx.onerror = ()=>{ reject(tx.error); };
-      });
-
-    }catch(e){
-      console.warn("Falha ao ler nuvem:", e);
-    }
-  }
-const PIN_CORRETO = "1234"; // <<< TROQUE AQUI (4 números)
+  const PIN_CORRETO = "1234"; // <<< TROQUE AQUI (4 números)
 
   function byId(id){ return document.getElementById(id); }
 
@@ -4197,6 +4027,219 @@ const PIN_CORRETO = "1234"; // <<< TROQUE AQUI (4 números)
     if(unlocked) hideLock();
     else showLock();
   });
+})();
+</script>
+
+
+<!-- Firebase (cloud sync) - added without altering UI -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+/* ===========================
+   CLOUD SYNC (Firestore)
+   - Keeps IndexedDB as source of truth for offline UX
+   - Mirrors changes to Firestore collection:
+     infra_atividades__atividades-infra---naza-audit
+   - Uses deterministic doc ids (activity.id) to avoid duplicates
+   =========================== */
+
+(function(){
+  // Guard in case Firebase CDN is blocked
+  if (typeof firebase === "undefined") {
+    console.warn("Firebase SDK não carregou. App seguirá apenas local.");
+    return;
+  }
+
+  // Your Firebase project config (provided)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDdCf-WvW7bNlxJq9gQPIANlxOO-D5sXHo",
+    authDomain: "atividades-infra---naza-audit.firebaseapp.com",
+    projectId: "atividades-infra---naza-audit",
+    storageBucket: "atividades-infra---naza-audit.firebasestorage.app",
+    appId: "1:730232324649:web:093e4f05d61fc4bf375238"
+  };
+
+  const COLLECTION_NAME = "infra_atividades__atividades-infra---naza-audit";
+
+  // Initialize (idempotent)
+  try {
+    if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  } catch(e){
+    // Some builds throw if already initialized
+    console.debug("Firebase init:", e && e.message ? e.message : e);
+  }
+
+  const fdb = firebase.firestore();
+
+  // Small, safe client id (only for conflict tracing)
+  const CLIENT_ID_KEY = "INFRA_CLIENT_ID_V1";
+  const getClientId = () => {
+    try {
+      let v = localStorage.getItem(CLIENT_ID_KEY);
+      if (!v) {
+        v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("c_" + Math.random().toString(16).slice(2) + Date.now());
+        localStorage.setItem(CLIENT_ID_KEY, v);
+      }
+      return v;
+    } catch(_) {
+      return "no_localstorage";
+    }
+  };
+  const CLIENT_ID = getClientId();
+
+  // Snapshot loop guard (avoid re-upload when we're applying cloud -> local)
+  let APPLYING_CLOUD = false;
+
+  function toDocId(id){
+    // Firestore doc ids cannot contain '/'
+    return String(id).replaceAll("/", "_");
+  }
+
+  function normalizeActivityForCloud(a){
+    // Never mutate original object
+    const clean = Object.assign({}, a);
+    clean._meta = Object.assign({}, clean._meta || {}, {
+      clientId: CLIENT_ID,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      deleted: false
+    });
+    return clean;
+  }
+
+  async function cloudUpsertActivity(activity){
+    try {
+      if (!activity || activity.id == null) return;
+      const docId = toDocId(activity.id);
+      const payload = normalizeActivityForCloud(activity);
+      await fdb.collection(COLLECTION_NAME).doc(docId).set(payload, { merge: true });
+    } catch (e) {
+      console.warn("Cloud upsert falhou (vai tentar de novo automaticamente quando editar):", e);
+    }
+  }
+
+  async function cloudMarkDeleted(ids){
+    try {
+      const batch = fdb.batch();
+      (ids||[]).forEach(id=>{
+        const docId = toDocId(id);
+        const ref = fdb.collection(COLLECTION_NAME).doc(docId);
+        batch.set(ref, { _meta: {
+          clientId: CLIENT_ID,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          deleted: true,
+          deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }}, { merge:true });
+      });
+      await batch.commit();
+    } catch (e) {
+      console.warn("Cloud delete marker falhou:", e);
+    }
+  }
+
+  // ----- Wrap local functions (do not break existing calls) -----
+  // We expect putActivity / deleteActivities to exist already.
+  const __putActivityLocal = window.putActivity;
+  const __deleteActivitiesLocal = window.deleteActivities;
+
+  if (typeof __putActivityLocal === "function") {
+    window.putActivity = async function(a){
+      // Ensure id exists (deterministic doc id avoids duplicates)
+      if (a && (a.id === undefined || a.id === null || a.id === "")) {
+        a.id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("id_" + Math.random().toString(16).slice(2) + Date.now());
+      }
+
+      // Local first (offline always works)
+      const ok = await __putActivityLocal(a);
+
+      // Cloud (skip when applying snapshot)
+      if (!APPLYING_CLOUD) await cloudUpsertActivity(a);
+      return ok;
+    };
+  }
+
+  if (typeof __deleteActivitiesLocal === "function") {
+    window.deleteActivities = async function(ids){
+      const ok = await __deleteActivitiesLocal(ids);
+      // Mark deleted in cloud so other devices remove too
+      if (!APPLYING_CLOUD) await cloudMarkDeleted(ids || []);
+      return ok;
+    };
+  }
+
+  // ----- Real-time mirror: cloud -> local -----
+  // Loads/merges activities from Firestore into IndexedDB.
+  function startCloudListener(){
+    try {
+      fdb.collection(COLLECTION_NAME).onSnapshot(async (snap)=>{
+        try{
+          APPLYING_CLOUD = true;
+
+          // Apply changed docs only (faster and avoids heavy redraw)
+          const changes = snap.docChanges();
+          for (const ch of changes) {
+            const doc = ch.doc;
+            const data = doc.data() || {};
+            const meta = data._meta || {};
+            const isDeleted = meta.deleted === true;
+
+            // Skip echo of our own write if it comes back unchanged
+            // (still safe if we don't skip)
+            // if (meta.clientId === CLIENT_ID) continue;
+
+            // Restore original id (doc id may be sanitized)
+            if (!data.id) data.id = doc.id;
+
+            if (isDeleted) {
+              // delete locally if exists
+              try {
+                if (typeof window.getActivity === "function") {
+                  const exists = await window.getActivity(data.id);
+                  if (exists) await __deleteActivitiesLocal([data.id]);
+                }
+              } catch(_) {}
+            } else {
+              // Upsert locally without re-upload
+              if (typeof __putActivityLocal === "function") {
+                await __putActivityLocal(data);
+              }
+            }
+          }
+
+          // Re-render if the app exposes refresh method
+          if (typeof window.refreshAll === "function") window.refreshAll();
+          if (typeof window.renderAll === "function") window.renderAll();
+
+        } finally {
+          APPLYING_CLOUD = false;
+        }
+      }, (err)=>{
+        console.warn("Listener Firestore erro:", err);
+      });
+    } catch(e){
+      console.warn("Não foi possível iniciar listener Firestore:", e);
+    }
+  }
+
+  // Start after DB is ready (openDB is in your code)
+  const tryStart = async () => {
+    try {
+      if (typeof window.openDB === "function") {
+        // openDB is already called by the app; this is just to ensure db exists
+        // If openDB returns a promise, await it. If not, ignore.
+        const r = window.openDB();
+        if (r && typeof r.then === "function") await r;
+      }
+    } catch(_) {}
+    startCloudListener();
+  };
+
+  // Start when DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", tryStart);
+  } else {
+    tryStart();
+  }
+
 })();
 </script>
 
