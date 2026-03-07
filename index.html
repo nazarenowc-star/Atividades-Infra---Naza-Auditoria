@@ -963,8 +963,33 @@
         <div class="grid3 mt-3">
           <div>
             <label class="form-label fw-semibold">Atividade</label>
-            <select class="form-select" id="photoActivitySelect"></select>
-            <div class="small mt-1">Use a busca na lista para achar rápido e depois volte aqui.</div>
+            <div class="grid2" style="grid-template-columns:1fr 1fr; gap:8px;">
+              <div>
+                <label class="form-label small fw-semibold mb-1">Período inicial</label>
+                <input class="form-control form-control-sm" type="date" id="photoFilterStart">
+              </div>
+              <div>
+                <label class="form-label small fw-semibold mb-1">Período final</label>
+                <input class="form-control form-control-sm" type="date" id="photoFilterEnd">
+              </div>
+            </div>
+            <div class="grid2 mt-2" style="grid-template-columns:1fr 1fr; gap:8px;">
+              <div>
+                <label class="form-label small fw-semibold mb-1">Infraestrutura</label>
+                <select class="form-select form-select-sm" id="photoFilterActivityType"></select>
+              </div>
+              <div>
+                <label class="form-label small fw-semibold mb-1">Busca rápida</label>
+                <input class="form-control form-control-sm" id="photoFilterText" placeholder="OS / título / local / equipamento">
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-2 flex-wrap">
+              <button class="btn btn-outline-primary btn-sm fw-semibold" type="button" id="btnApplyPhotoFilters">Filtrar</button>
+              <button class="btn btn-outline-secondary btn-sm fw-semibold" type="button" id="btnClearPhotoFilters">Limpar filtros</button>
+              <span class="pill" id="photoFilterCount">0 atividades</span>
+            </div>
+            <select class="form-select mt-2" id="photoActivitySelect"></select>
+            <div class="small mt-1">O seletor mostra somente atividades ativas, com filtros de período e infraestrutura para localizar mais rápido.</div>
           </div>
           <div>
             <label class="form-label fw-semibold">Modo</label>
@@ -1001,7 +1026,7 @@
             </div>
 
             <div class="small mt-2">
-              As fotos são gravadas no dispositivo. Evite lotar com muitas imagens muito grandes.
+              As fotos continuam gravadas no dispositivo para manter velocidade e funcionamento offline. A nuvem sincroniza as atividades; por segurança e desempenho, não removi esse espelho local nesta versão.
             </div>
 
             <div class="mt-3 thumbRow" id="thumbRow"></div>
@@ -2662,6 +2687,64 @@ let photoWork = {
   selected: new Set()
 };
 
+function getPhotoSelectorFilters(){
+  return {
+    start: $("photoFilterStart")?.value || "",
+    end: $("photoFilterEnd")?.value || "",
+    activityType: $("photoFilterActivityType")?.value || "",
+    text: ($("photoFilterText")?.value || "").trim().toLowerCase()
+  };
+}
+
+function isActivityActiveForPhotoSelect(a){
+  if(!a || !a.id) return false;
+  if(a.deleted === true) return false;
+  if(a._meta && a._meta.deleted === true) return false;
+  return true;
+}
+
+function filterActivitiesForPhotoSelect(list){
+  const f = getPhotoSelectorFilters();
+  const uniq = new Map();
+  for(const a of (list || [])){
+    if(!isActivityActiveForPhotoSelect(a)) continue;
+    if(!uniq.has(a.id)) uniq.set(a.id, a);
+  }
+  let arr = Array.from(uniq.values());
+
+  if(f.start){
+    arr = arr.filter(a => (a.end || a.start || "") >= f.start);
+  }
+  if(f.end){
+    arr = arr.filter(a => (a.start || a.end || "") <= f.end);
+  }
+  if(f.activityType){
+    arr = arr.filter(a => (a.activityType || "") === f.activityType);
+  }
+  if(f.text){
+    arr = arr.filter(a => {
+      const hay = [
+        a.osNumber,
+        a.dayOrder,
+        a.title,
+        a.desc,
+        a.location,
+        a.machine,
+        a.equipment,
+        a.company,
+        a.planner,
+        a.activityType
+      ].join(" ").toLowerCase();
+      return hay.includes(f.text);
+    });
+  }
+  return sortActivitiesProfessional(arr);
+}
+
+function buildPhotoOptionLabel(a){
+  return `${fmtDate(a.start)} • ${a.dayOrder || "—"} • ${a.osNumber || "OS"} • ${getActivityTypeLabel(a)} • ${a.title || "Sem título"} • ${a.machine} • ${a.equipment}`;
+}
+
 async function loadPhotoSelect(){
   const all = await getAllActivities();
   const sel = $("photoActivitySelect");
@@ -2671,15 +2754,55 @@ async function loadPhotoSelect(){
   opt0.value=""; opt0.textContent="Selecione...";
   sel.appendChild(opt0);
 
-  const sorted = sortActivitiesProfessional(all);
-  for(const a of sorted){
+  const filtered = filterActivitiesForPhotoSelect(all);
+  for(const a of filtered){
     const o=document.createElement("option");
     o.value=a.id;
-    o.textContent = `${fmtDate(a.start)} • ${a.dayOrder || "—"} • ${a.osNumber || "OS"} • ${getActivityTypeLabel(a)} • ${a.title || "Sem título"} • ${a.machine} • ${a.equipment}`;
+    o.textContent = buildPhotoOptionLabel(a);
     sel.appendChild(o);
   }
-  if(cur) sel.value = cur;
+  if(cur && filtered.some(a => a.id === cur)) sel.value = cur;
+  else sel.value = "";
+
+  if($("photoFilterCount")){
+    $("photoFilterCount").textContent = `${filtered.length} atividade${filtered.length === 1 ? "" : "s"}`;
+  }
 }
+
+
+populateActivityTypeSelect("photoFilterActivityType", true);
+
+$("btnApplyPhotoFilters")?.addEventListener("click", async ()=>{
+  await loadPhotoSelect();
+  photoWork.id = null;
+  photoWork.photos = [];
+  $("photoTitle").textContent = "Fotos";
+  $("photoSubtitle").textContent = "—";
+  $("photoSummary").textContent = "Selecione e clique em Carregar.";
+  renderThumbs();
+});
+
+$("btnClearPhotoFilters")?.addEventListener("click", async ()=>{
+  $("photoFilterStart").value = "";
+  $("photoFilterEnd").value = "";
+  $("photoFilterActivityType").value = "";
+  $("photoFilterText").value = "";
+  await loadPhotoSelect();
+  photoWork.id = null;
+  photoWork.photos = [];
+  $("photoTitle").textContent = "Fotos";
+  $("photoSubtitle").textContent = "—";
+  $("photoSummary").textContent = "Selecione e clique em Carregar.";
+  renderThumbs();
+});
+
+$("photoFilterText")?.addEventListener("input", ()=>{
+  clearTimeout(window.__photoFilterTimer);
+  window.__photoFilterTimer = setTimeout(()=>{ loadPhotoSelect(); }, 180);
+});
+$("photoFilterStart")?.addEventListener("change", ()=>loadPhotoSelect());
+$("photoFilterEnd")?.addEventListener("change", ()=>loadPhotoSelect());
+$("photoFilterActivityType")?.addEventListener("change", ()=>loadPhotoSelect());
 
 function renderThumbs(){
   const row = $("thumbRow");
@@ -3404,163 +3527,115 @@ async function calcularAderencia(){
 }
 
 /* =========================================================
-   Exportar Aderência para PDF - VERSÃO CORRIGIDA
-   Agora captura exatamente o mesmo layout visual da tela
+   Exportar Aderência para PDF - VERSÃO AJUSTADA
+   Mantém o front intacto e força os gráficos reais no PDF
 ========================================================= */
 async function exportAderenciaPDF(){
   try{
     await calcularAderencia();
-    
-    // Aguardar renderização dos gráficos
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+    await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 450)));
+
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({orientation:"portrait", unit:"mm", format:"a4"});
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const margin = 10;
-    
-    // Título do documento
-    pdf.setFontSize(16);
-    pdf.text("Relatório de Aderência • Mini Máquinas", margin, margin);
-    pdf.setFontSize(10);
-    pdf.text(`Período: ${dateRangeLabel()} • Gerado em: ${new Date().toLocaleString("pt-BR")}`, margin, margin+8);
-    
-    let y = margin + 15;
-    
-    // 1. Primeiro, capturar a barra de progresso e KPIs - o container inteiro da aba de aderência
+    let y = margin;
+
     const aderenciaSection = $("tab-aderencia");
-    if (aderenciaSection) {
-      // Clonar a seção para não afetar a original
-      const cloneSection = aderenciaSection.cloneNode(true);
-      cloneSection.style.display = "block";
-      cloneSection.style.position = "absolute";
-      cloneSection.style.left = "-9999px";
-      cloneSection.style.top = "0";
-      cloneSection.style.width = "800px"; // Largura fixa para consistência
-      cloneSection.style.background = "white";
-      document.body.appendChild(cloneSection);
-      
-      try {
-        const canvas = await html2canvas(cloneSection, { 
-          scale: 2, 
-          backgroundColor: "#ffffff",
-          logging: false,
-          allowTaint: false,
-          useCORS: true,
-          windowWidth: 800
-        });
-        
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        const imgW = pageW - margin*2;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        
-        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
-        y += imgH + 8;
-      } finally {
-        document.body.removeChild(cloneSection);
+    if(!aderenciaSection) throw new Error("Aba de aderência não encontrada.");
+
+    const addCanvasToPdf = (canvas, gap = 8) => {
+      if(!canvas) return;
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const imgW = pageW - margin*2;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      if(y + imgH > pageH - margin){
+        pdf.addPage();
+        y = margin;
       }
+      pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+      y += imgH + gap;
+    };
+
+    const renderElementToCanvas = async (element, width = 800) => {
+      return await html2canvas(element, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        logging: false,
+        allowTaint: false,
+        useCORS: true,
+        windowWidth: width,
+        width: width,
+        scrollX: 0,
+        scrollY: 0
+      });
+    };
+
+    pdf.setFontSize(16);
+    pdf.text("Relatório de Aderência • Mini Máquinas", margin, y);
+    pdf.setFontSize(10);
+    pdf.text(`Período: ${dateRangeLabel()} • Gerado em: ${new Date().toLocaleString("pt-BR")}`, margin, y + 8);
+    y += 15;
+
+    const cloneSection = aderenciaSection.cloneNode(true);
+    cloneSection.style.display = "block";
+    cloneSection.style.position = "absolute";
+    cloneSection.style.left = "-99999px";
+    cloneSection.style.top = "0";
+    cloneSection.style.width = "1100px";
+    cloneSection.style.maxWidth = "1100px";
+    cloneSection.style.background = "#ffffff";
+    cloneSection.style.padding = "18px";
+    cloneSection.querySelectorAll(".btnRow, .noPrint, button").forEach(el => el.remove());
+
+    const originalCanvases = aderenciaSection.querySelectorAll("canvas");
+    const cloneCanvases = cloneSection.querySelectorAll("canvas");
+    originalCanvases.forEach((origCanvas, idx) => {
+      const cloneCanvas = cloneCanvases[idx];
+      if(!cloneCanvas) return;
+      const img = document.createElement("img");
+      img.src = origCanvas.toDataURL("image/png", 1.0);
+      img.style.width = "100%";
+      img.style.height = "auto";
+      img.style.display = "block";
+      img.style.background = "#ffffff";
+      cloneCanvas.replaceWith(img);
+    });
+
+    document.body.appendChild(cloneSection);
+    try{
+      const mainCard = cloneSection.querySelector('.cardX');
+      if(mainCard){
+        const mainCanvas = await renderElementToCanvas(mainCard, 1100);
+        addCanvasToPdf(mainCanvas, 6);
+      }
+    } finally {
+      cloneSection.remove();
     }
-    
-    // Se a captura completa falhar, fazer fallback capturando partes individuais
-    if (y <= margin + 20) {
-      // 2. Capturar a barra de progresso
-      const progressContainer = document.querySelector('.progress-container');
-      if (progressContainer) {
-        const canvas = await html2canvas(progressContainer, { 
-          scale: 2, 
-          backgroundColor: "#ffffff",
-          logging: false,
-          allowTaint: false,
-          useCORS: true
-        });
-        
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        const imgW = pageW - margin*2;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        
-        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
-        y += imgH + 8;
-      }
-      
-      // 3. Capturar a grid de cards de aderência
-      const aderenciaGrid = document.querySelector('.aderencia-grid');
-      if (aderenciaGrid) {
-        const canvas = await html2canvas(aderenciaGrid, { 
-          scale: 2, 
-          backgroundColor: "#ffffff",
-          logging: false,
-          allowTaint: false,
-          useCORS: true
-        });
-        
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        const imgW = pageW - margin*2;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        
-        // Verificar se cabe na página, senão criar nova página
-        if (y + imgH > pageH - 20) {
-          pdf.addPage();
-          y = margin;
-        }
-        
-        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
-        y += imgH + 8;
-      }
-      
-      // 4. Capturar os gráficos de conclusão
-      const chartsGrid = document.querySelector('.grid2.mt-4');
-      if (chartsGrid) {
-        const canvas = await html2canvas(chartsGrid, { 
-          scale: 2, 
-          backgroundColor: "#ffffff",
-          logging: false,
-          allowTaint: false,
-          useCORS: true
-        });
-        
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        const imgW = pageW - margin*2;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        
-        // Verificar se cabe na página
-        if (y + imgH > pageH - 20) {
-          pdf.addPage();
-          y = margin;
-        }
-        
-        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
-        y += imgH + 8;
-      }
-      
-      // 5. Capturar a tabela de detalhamento por equipamento
-      const tableCard = document.querySelector('.cardX.mt-4');
-      if (tableCard) {
-        const canvas = await html2canvas(tableCard, { 
-          scale: 2, 
-          backgroundColor: "#ffffff",
-          logging: false,
-          allowTaint: false,
-          useCORS: true
-        });
-        
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        const imgW = pageW - margin*2;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        
-        // Verificar se precisa de nova página
-        if (y + imgH > pageH - 20) {
-          pdf.addPage();
-          y = margin;
-        }
-        
-        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
-      }
+
+    // Fallback extra: se por algum motivo os gráficos não aparecerem no clone,
+    // captura diretamente o bloco dos gráficos reais da aba de aderência.
+    const chartsGrid = aderenciaSection.querySelector('.grid2.mt-4');
+    const hasChartImageInPdf = originalCanvases.length >= 2;
+    if(chartsGrid && hasChartImageInPdf){
+      pdf.addPage();
+      y = margin;
+      pdf.setFontSize(13);
+      pdf.text("Gráficos de Conclusão", margin, y);
+      y += 6;
+      const chartsCanvas = await renderElementToCanvas(chartsGrid, 1100);
+      addCanvasToPdf(chartsCanvas, 6);
     }
-    
+
+    const tableCard = aderenciaSection.querySelector('.cardX.mt-4');
+    if(tableCard){
+      const tableCanvas = await renderElementToCanvas(tableCard, 1100);
+      addCanvasToPdf(tableCanvas, 6);
+    }
+
     pdf.save(`Aderencia_MiniMaquinas_${todayISO()}.pdf`);
-    toast("Relatório de Aderência exportado com layout completo!");
-    
+    toast("Relatório de Aderência exportado com os gráficos completos!");
   }catch(err){
     console.error("Erro ao exportar aderência:", err);
     toast("Falha ao exportar o relatório de Aderência. Tente novamente.");
