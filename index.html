@@ -111,6 +111,21 @@
     .st-pendente{ background:#fff0f0; border-color:#ffc9c9; color:#8a1f1f; }
     .st-parcial{ background:#fff3bf; border-color:#ffe066; color:#8a6e00; }
 
+    .osSeqBadge{
+      display:inline-flex; align-items:center; justify-content:center;
+      min-width:28px; height:28px; padding:0 8px; margin-right:8px;
+      border-radius:999px; background:#e7f5ff; color:#0b4b7a;
+      border:1px solid #a5d8ff; font-weight:800; font-size:12px;
+    }
+    .infraBadge{
+      display:inline-flex; align-items:center; gap:6px;
+      margin-top:6px; padding:4px 10px; border-radius:999px;
+      background:#eef8f1; border:1px solid #ccebd5; color:#1b5e2b;
+      font-size:12px; font-weight:700;
+    }
+    .infraBadge::before{ content:"🏗️"; font-size:12px; }
+    .smallStack{ display:flex; flex-direction:column; gap:2px; }
+
     .thumbRow{ display:flex; gap:10px; flex-wrap:wrap; }
     .thumb{
       width:110px; height:78px; border-radius: 12px;
@@ -411,13 +426,20 @@
             <canvas id="chartMotivos" height="170"></canvas>
           </div>
         </div>
-      
+
         <div class="grid2 mt-3">
+          <div class="cardX" style="box-shadow:none;">
+            <div class="small mb-2">Atividades de Infraestrutura</div>
+            <canvas id="chartActivityType" height="170"></canvas>
+          </div>
           <div class="cardX" style="box-shadow:none;">
             <div class="small mb-2">Por Turno Início</div>
             <canvas id="chartShiftStart" height="170"></canvas>
           </div>
-          <div class="cardX" style="box-shadow:none;">
+        </div>
+      
+        <div class="grid2 mt-3">
+          <div class="cardX" style="box-shadow:none; grid-column:1 / -1;">
             <div class="small mb-2">Cronologia (Atividades x Período)</div>
             <canvas id="chartTimeline" height="210"></canvas>
           </div>
@@ -482,6 +504,10 @@
             <div>
               <label class="form-label fw-semibold">Local / Área</label>
               <input class="form-control" id="newLocation" placeholder="Ex.: CV67 / Hopper 19 / Mina Norte..." />
+              <div class="mt-2">
+                <label class="form-label fw-semibold">Atividade de Infraestrutura</label>
+                <select class="form-select" id="newActivityType"></select>
+              </div>
             </div>
           </div>
 
@@ -688,6 +714,8 @@
           <div>
             <label class="form-label fw-semibold">Empresa</label>
             <input class="form-control" id="fCompany" placeholder="filtrar por empresa (contém...)" />
+            <label class="form-label fw-semibold mt-2">Atividade de Infraestrutura</label>
+            <select class="form-select" id="fActivityType"></select>
           </div>
           <div>
             <label class="form-label fw-semibold">Busca geral</label>
@@ -782,6 +810,10 @@
                   <div>
                     <label class="form-label fw-semibold">Local / Área</label>
                     <input class="form-control" id="editLocation" placeholder="Ex.: CV67 / Hopper 19 / Mina Norte..." />
+                    <div class="mt-2">
+                      <label class="form-label fw-semibold">Atividade de Infraestrutura</label>
+                      <select class="form-select" id="editActivityType"></select>
+                    </div>
                   </div>
                 </div>
 
@@ -1053,6 +1085,7 @@
                 <tr>
                   <th>OS</th>
                   <th>#</th>
+                  <th>Infra</th>
                   <th>Máquina / Equipamento</th>
                   <th>Local</th>
                   <th>Período</th>
@@ -1515,10 +1548,20 @@ function toast(msg){
 function uid(){
   return "A" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 }
+const OS_COUNTER_KEY = "MINI_MAQUINAS_OS_COUNTER_V1";
+function parseOsNumeric(os){
+  const m = String(os||"").match(/(\d+)/);
+  return m ? parseInt(m[1],10) : 0;
+}
+function formatOsNumber(num){
+  return `OS-${String(Math.max(1, Number(num)||1)).padStart(6,"0")}`;
+}
 function generateOSNumber(){
-  const year = new Date().getFullYear().toString().slice(-2);
-  const random = Math.floor(Math.random() * 9000 + 1000);
-  return `OS-${year}${random}`;
+  let counter = 0;
+  try{ counter = parseInt(localStorage.getItem(OS_COUNTER_KEY)||"0",10) || 0; }catch(_){}
+  counter += 1;
+  try{ localStorage.setItem(OS_COUNTER_KEY, String(counter)); }catch(_){}
+  return formatOsNumber(counter);
 }
 function todayISO(){
   const d=new Date();
@@ -1545,6 +1588,90 @@ function statusClass(st){
   return "st-pendente";
 }
 function safeText(s){ return (s||"").toString().replace(/\s+/g," ").trim(); }
+
+const ACTIVITY_TYPE_OPTIONS = [
+  "",
+  "Leito de Correia",
+  "Acesso",
+  "Leira",
+  "Drenagem",
+  "Bueiro",
+  "Talude",
+  "Plataforma",
+  "Base Estrutural",
+  "Escavação",
+  "Aterramento",
+  "Regularização de Solo",
+  "Remoção de Material",
+  "Bota Fora",
+  "Limpeza de Área",
+  "Carregamento de Material",
+  "Transporte de Material",
+  "Contenção",
+  "Estoque / Pilha",
+  "Outro"
+];
+
+function populateActivityTypeSelect(selectId, includeAll=false){
+  const sel = $(selectId);
+  if(!sel) return;
+  const current = sel.value || "";
+  sel.innerHTML = "";
+  ACTIVITY_TYPE_OPTIONS.forEach((opt,idx)=>{
+    const o = document.createElement("option");
+    if(idx===0){
+      o.value = "";
+      o.textContent = includeAll ? "(todas)" : "Selecione...";
+    } else {
+      o.value = opt;
+      o.textContent = opt;
+    }
+    sel.appendChild(o);
+  });
+  sel.value = current;
+}
+function getActivityTypeLabel(a){
+  return a?.activityType || "Não classificada";
+}
+function sortActivitiesProfessional(list){
+  return [...list].sort((a,b)=>
+    (a.start||"").localeCompare(b.start||"") ||
+    parseOsNumeric(a.osNumber) - parseOsNumeric(b.osNumber) ||
+    (a.createdAt||0) - (b.createdAt||0)
+  );
+}
+async function syncProfessionalOrdering(){
+  const all = await getAllActivities();
+  if(!all.length) return;
+  let maxOs = 0;
+  let changed = false;
+  all.forEach(a=>{ maxOs = Math.max(maxOs, parseOsNumeric(a.osNumber)); });
+  try{
+    const stored = parseInt(localStorage.getItem(OS_COUNTER_KEY)||"0",10) || 0;
+    if(stored < maxOs) localStorage.setItem(OS_COUNTER_KEY, String(maxOs));
+  }catch(_){}
+  const sorted = sortActivitiesProfessional(all);
+  const dayMap = new Map();
+  for(const a of sorted){
+    if(!parseOsNumeric(a.osNumber)){
+      maxOs += 1;
+      a.osNumber = formatOsNumber(maxOs);
+      changed = true;
+    }
+    const dayKey = a.start || "sem-data";
+    const nextDayOrder = (dayMap.get(dayKey) || 0) + 1;
+    dayMap.set(dayKey, nextDayOrder);
+    if(a.dayOrder !== nextDayOrder){
+      a.dayOrder = nextDayOrder;
+      changed = true;
+    }
+  }
+  if(changed){
+    for(const a of sorted){
+      await putActivity(a);
+    }
+  }
+}
 
 function normKey(s){
   return (s||"")
@@ -2020,7 +2147,8 @@ document.querySelectorAll(".navBtn").forEach(btn=>{
 const filters = {
   start: "", end: "",
   machine: "", status: "",
-  company: "", text: ""
+  company: "", text: "",
+  activityType: ""
 };
 
 function readFiltersUI(){
@@ -2030,6 +2158,7 @@ function readFiltersUI(){
   filters.status = $("fStatus").value || "";
   filters.company = $("fCompany").value || "";
   filters.text = $("fText").value || "";
+  filters.activityType = $("fActivityType").value || "";
 }
 
 function applyFilters(list){
@@ -2037,15 +2166,17 @@ function applyFilters(list){
   const m=filters.machine, st=filters.status;
   const co=norm(filters.company);
   const txq=norm(filters.text);
+  const at=norm(filters.activityType);
 
   return list.filter(a=>{
     if(fs && fe && !overlaps(a.start,a.end,fs,fe)) return false;
     if(m && a.machine!==m) return false;
     if(st && a.status!==st) return false;
     if(co && !norm(a.company).includes(co)) return false;
+    if(at && norm(a.activityType)!==at) return false;
 
     if(txq){
-      const blob = norm([a.machine,a.equipment,a.location,a.desc,a.planner,a.company,a.shiftStart,a.shiftEnd].join(" "));
+      const blob = norm([a.machine,a.equipment,a.location,a.desc,a.planner,a.company,a.shiftStart,a.shiftEnd,a.title,a.osNumber,a.activityType].join(" "));
       if(!blob.includes(txq)) return false;
     }
     return true;
@@ -2058,6 +2189,7 @@ function applyFilters(list){
 $("btnNewClear").addEventListener("click", ()=>{
   $("formNew").reset();
   $("selectedEquipmentDisplay").textContent = 'Nenhum';
+  $("newActivityType").value = "";
   document.querySelectorAll('.equipment-option').forEach(btn => {
     btn.classList.remove('selected');
   });
@@ -2096,6 +2228,7 @@ $("formNew").addEventListener("submit", async (e)=>{
     machine: $("newMachine").value.trim(),
     equipment: safeText($("newEquipment").value),
     location: safeText($("newLocation").value),
+    activityType: $("newActivityType").value || "",
     title: safeText($("newTitle").value),
     responsible: safeText($("newResponsible").value),
     priority: $("newPriority").value || "Média",
@@ -2125,6 +2258,7 @@ $("formNew").addEventListener("submit", async (e)=>{
   }
 
   await putActivity(a);
+  await syncProfessionalOrdering();
   toast("Atividade salva com OS: " + a.osNumber);
   $("formNew").reset();
   $("selectedEquipmentDisplay").textContent = 'Nenhum';
@@ -2199,6 +2333,7 @@ async function processNewImport(){
         equipment: $("newEquipment").value || "MM-01",
         title: titleGuess,
         location: $("newLocation").value || "",
+        activityType: $("newActivityType").value || "",
         desc: $("newDesc").value || "",
         planner: $("newPlanner").value || "",
         company: $("newCompany").value || "",
@@ -2215,6 +2350,7 @@ async function processNewImport(){
         photosAfter: []
       };
       await putActivity(a);
+      await syncProfessionalOrdering();
       all.push(a);
       target = a;
       created++;
@@ -2235,6 +2371,7 @@ async function processNewImport(){
 
     target.updatedAt = Date.now();
     await putActivity(target);
+    await syncProfessionalOrdering();
     attached++;
   }
 
@@ -2274,7 +2411,7 @@ $("btnApplyFilters").addEventListener("click", async ()=>{
 $("btnClearFilters").addEventListener("click", async ()=>{
   $("fStart").value=""; $("fEnd").value="";
   $("fMachine").value=""; $("fStatus").value="";
-  $("fCompany").value=""; $("fText").value="";
+  $("fCompany").value=""; $("fText").value=""; $("fActivityType").value="";
   readFiltersUI();
   await refreshTable();
   await refreshDashboard();
@@ -2307,6 +2444,7 @@ $("btnDeleteSelected").addEventListener("click", async ()=>{
   if(selectedIds.size===0) return;
   if(!confirm(`Excluir ${selectedIds.size} atividade(s)?`)) return;
   await deleteActivities([...selectedIds]);
+  await syncProfessionalOrdering();
   selectedIds.clear();
   $("chkAll").checked=false;
   updateDeleteSelectedBtn();
@@ -2320,8 +2458,7 @@ $("btnDeleteSelected").addEventListener("click", async ()=>{
 async function refreshTable(){
   const all = await getAllActivities();
   readFiltersUI();
-  currentList = applyFilters(all)
-    .sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
+  currentList = sortActivitiesProfessional(applyFilters(all));
 
   selectedIds = new Set();
   $("chkAll").checked=false;
@@ -2344,13 +2481,15 @@ async function refreshTable(){
     
     const motivoInfo = (a.status === "Parcial" || a.status === "Pendente") ? 
       `<span class="small text-muted">Motivo: ${a.motivo || "—"}</span>` : "";
+    const infraInfo = getActivityTypeLabel(a);
 
     const row = document.createElement("tr");
     row.innerHTML = `
       <td><input type="checkbox" class="rowChk" data-id="${a.id}"></td>
       <td>
-        <div class="fw-semibold">${a.osNumber || "OS pendente"} - ${a.title || a.desc || "—"}</div>
+        <div class="fw-semibold"><span class="osSeqBadge">${a.dayOrder || "—"}</span>${a.osNumber || "OS pendente"} - ${a.title || a.desc || "—"}</div>
         <div class="small text-muted">${a.machine} • ${a.equipment}${a.priority ? (" • Prioridade: "+a.priority) : ""}${a.responsible ? (" • Resp.: "+a.responsible) : ""}</div>
+        <div class="infraBadge">${infraInfo}</div>
         <div class="small text-muted">${a.location ? ("📍 "+a.location) : ""}</div>
         <div class="small text-muted">${(a.title && a.desc) ? a.desc : ""}</div>
         ${motivoInfo}
@@ -2413,6 +2552,7 @@ async function openEdit(id){
   $("editMachine").value = a.machine;
   $("editEquipment").value = a.equipment || "";
   $("editLocation").value = a.location || "";
+  $("editActivityType").value = a.activityType || "";
   $("editResponsible").value = a.responsible || "";
   $("editPriority").value = a.priority || "Média";
   $("editTitle").value = a.title || "";
@@ -2475,6 +2615,7 @@ $("btnSaveEdit").addEventListener("click", async ()=>{
   a.machine = $("editMachine").value;
   a.equipment = safeText($("editEquipment").value);
   a.location = safeText($("editLocation").value);
+  a.activityType = $("editActivityType").value || "";
   a.responsible = safeText($("editResponsible").value);
   a.priority = $("editPriority").value || "Média";
   a.title = safeText($("editTitle").value);
@@ -2502,6 +2643,7 @@ $("btnSaveEdit").addEventListener("click", async ()=>{
   }
 
   await putActivity(a);
+  await syncProfessionalOrdering();
   toast("Atualizado.");
   bootstrap.Modal.getInstance($("modalEdit")).hide();
   await refreshTable();
@@ -2529,12 +2671,11 @@ async function loadPhotoSelect(){
   opt0.value=""; opt0.textContent="Selecione...";
   sel.appendChild(opt0);
 
-  const sorted = all.sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
+  const sorted = sortActivitiesProfessional(all);
   for(const a of sorted){
     const o=document.createElement("option");
     o.value=a.id;
-    // Melhorado para mostrar o título da atividade primeiro
-    o.textContent = `${a.osNumber || "OS"} - ${a.title || "Sem título"} • ${a.machine} • ${a.equipment} (${fmtDate(a.start)}→${fmtDate(a.end)})`;
+    o.textContent = `${fmtDate(a.start)} • ${a.dayOrder || "—"} • ${a.osNumber || "OS"} • ${getActivityTypeLabel(a)} • ${a.title || "Sem título"} • ${a.machine} • ${a.equipment}`;
     sel.appendChild(o);
   }
   if(cur) sel.value = cur;
@@ -2585,10 +2726,12 @@ $("btnLoadPhotos").addEventListener("click", async ()=>{
   photoWork.photos = (mode==="before" ? (a.photosBefore||[]) : (a.photosAfter||[]));
 
   $("photoTitle").textContent = (mode==="before") ? "Fotos ANTES" : "Fotos DEPOIS";
-  $("photoSubtitle").textContent = `${a.osNumber || "OS"} - ${a.title || "Sem título"} • ${a.machine} • ${a.equipment} • ${fmtDate(a.start)}→${fmtDate(a.end)}`;
+  $("photoSubtitle").textContent = `${fmtDate(a.start)} • ${a.dayOrder || "—"} • ${a.osNumber || "OS"} • ${getActivityTypeLabel(a)} • ${a.title || "Sem título"} • ${a.machine} • ${a.equipment}`;
 
   $("photoSummary").innerHTML = `
+    <div><b>Sequência do dia:</b> ${a.dayOrder || "—"}</div>
     <div><b>OS:</b> ${a.osNumber || "—"}</div>
+    <div><b>Infra:</b> ${getActivityTypeLabel(a)}</div>
     <div><b>Título:</b> ${a.title || "—"}</div>
     <div><b>Descrição:</b> ${a.desc || "—"}</div>
     <div><b>Local:</b> ${a.location || "—"}</div>
@@ -2782,6 +2925,11 @@ async function refreshDashboard(){
   const coLabels = co.map(x=>x[0]);
   const coVals = co.map(x=>x[1]);
 
+  // Activity type
+  const at = countBy(list, a=>getActivityTypeLabel(a)).slice(0,10);
+  const atLabels = at.map(x=>x[0]);
+  const atVals = at.map(x=>x[1]);
+
   // Daily evolution
   const dailyMap=new Map();
   for(const a of list){
@@ -2893,6 +3041,14 @@ async function refreshDashboard(){
     });
   }
 
+  if(atLabels.length > 0){
+    charts.activityType = new Chart($("chartActivityType"), {
+      type:"bar",
+      data:{ labels: atLabels, datasets:[{ label:"Qtd", data: atVals, backgroundColor:"#2f9e44" }] },
+      options:{ responsive:true, indexAxis:"y", plugins:{ legend:{ display:false } } }
+    });
+  }
+
   if(dLabels.length > 0){
     charts.daily = new Chart($("chartDaily"), {
       type:"line",
@@ -2985,8 +3141,8 @@ async function exportDashboardPDF(){
       {id:"chartMachine", title:"Por tipo de máquina e equipamento"},
       {id:"chartCompany", title:"Por empresa executora"},
       {id:"chartMotivos", title:"Motivos de Não Conclusão"},
-      {id:"chartShiftStart", title:"Por turno início"},
-      {id:"chartTimeline", title:"Cronologia (Atividades x Período)"}
+      {id:"chartActivityType", title:"Atividades de Infraestrutura"},
+      {id:"chartShiftStart", title:"Por turno início"}
     ];
 
     pdf.setFontSize(14);
@@ -3515,7 +3671,7 @@ function makePhotoStrip(arr){
 $("btnBuildReport").addEventListener("click", async ()=>{
   const all = await getAllActivities();
   readFiltersUI();
-  const filtered = applyFilters(all).sort((a,b)=> (a.start||"").localeCompare(b.start||"") || (b.createdAt-a.createdAt));
+  const filtered = sortActivitiesProfessional(applyFilters(all));
   // Se houver seleção na lista, monta relatório apenas das marcadas.
   let list = filtered;
   if(typeof selectedIds !== "undefined" && selectedIds && selectedIds.size>0){
@@ -3550,9 +3706,11 @@ $("btnBuildReport").addEventListener("click", async ()=>{
 
   const topMachines = countBy(list,a=>a.machine).slice(0,3).map(x=>`${x[0]} (${x[1]})`).join(" • ") || "—";
   const topCompanies = countBy(list,a=>a.company).slice(0,3).map(x=>`${x[0]} (${x[1]})`).join(" • ") || "—";
+  const topInfra = countBy(list,a=>getActivityTypeLabel(a)).slice(0,3).map(x=>`${x[0]} (${x[1]})`).join(" • ") || "—";
   $("reportSummary").innerHTML = `
     <div>• Principais tipos de máquina: <b>${topMachines}</b></div>
     <div>• Principais empresas: <b>${topCompanies}</b></div>
+    <div>• Principais atividades de infraestrutura: <b>${topInfra}</b></div>
     <div>• Observação: relatório mostra as atividades conforme filtros aplicados.</div>
   `;
 
@@ -3569,7 +3727,8 @@ $("btnBuildReport").addEventListener("click", async ()=>{
     const tr=document.createElement("tr");
     tr.innerHTML = `
       <td class="fw-bold">${a.osNumber || "—"}</td>
-      <td>${idx+1}</td>
+      <td>${a.dayOrder || idx+1}</td>
+      <td>${getActivityTypeLabel(a)}</td>
       <td><b>${a.title||"—"}</b><br><span class="small">${a.machine} • ${a.equipment}</span>${a.responsible?("<br><span class=\"small\"><b>Resp.:</b> "+a.responsible+"</span>"):""}${a.priority?("<br><span class=\"small\"><b>Prior.:</b> "+a.priority+"</span>"):""} </td>
       <td>${a.location||"—"}</td>
       <td class="mono">${fmtDate(a.start)} → ${fmtDate(a.end)}</td>
@@ -3708,6 +3867,8 @@ $("btnExportExcel").addEventListener("click", async ()=>{
 
   const rows = lastReport.list.map(a=>({
     OS: a.osNumber || "—",
+    Sequencia_Dia: a.dayOrder || "",
+    Atividade_Infra: getActivityTypeLabel(a),
     Tipo_Maquina: a.machine,
     Equipamento: a.equipment,
     Local: a.location,
@@ -3795,9 +3956,11 @@ $("restoreJSON").addEventListener("change", async (e)=>{
     if(a.shift && !a.shiftStart) a.shiftStart = a.shift;
     if(!a.shiftEnd) a.shiftEnd = "";
     if(!a.osNumber) a.osNumber = generateOSNumber();
+    if(!("activityType" in a)) a.activityType = "";
     await putActivity(a);
   }
 
+  await syncProfessionalOrdering();
   await loadPrefsToUI();
   await refreshTable();
   await refreshDashboard();
@@ -3810,6 +3973,7 @@ $("restoreJSON").addEventListener("change", async (e)=>{
 $("btnWipeDB").addEventListener("click", async ()=>{
   if(!confirm("Apagar TODO o banco local (atividades e fotos) deste dispositivo?")) return;
   await wipeDB();
+  await syncProfessionalOrdering();
   toast("Banco limpo.");
   await loadPrefsToUI();
   await refreshTable();
@@ -3822,6 +3986,10 @@ $("btnWipeDB").addEventListener("click", async ()=>{
    Inicialização
 ========================================================= */
 async function loadPrefsToUI(){
+  populateActivityTypeSelect("newActivityType");
+  populateActivityTypeSelect("editActivityType");
+  populateActivityTypeSelect("fActivityType", true);
+
   $("prefPlanner").value = await getPref("planner");
   $("prefCompany").value = await getPref("company");
   $("prefShiftStart").value = await getPref("shiftStart");
@@ -3897,6 +4065,7 @@ async function seedInitialWeekIfEmpty(){
       machine: "Mini Máquina",
       equipment: "MM-01",
       location: loc,
+      activityType: t.toLowerCase().includes("acesso") ? "Acesso" : (t.toLowerCase().includes("hopper") ? "Leito de Correia" : "Leito de Correia"),
       title: t,
       responsible: "",
       priority: "Média",
@@ -3925,10 +4094,12 @@ async function seedInitialWeekIfEmpty(){
 ========================================================= */
 (async function init(){
   await openDB();
+  await syncProfessionalOrdering();
   setupEquipmentSelection();
   setupEditEquipmentSelection();
   await loadPrefsToUI();
   await seedInitialWeekIfEmpty();
+  await syncProfessionalOrdering();
   await refreshTable();
   await loadPhotoSelect();
   await refreshDashboard();
@@ -4245,5 +4416,6 @@ async function seedInitialWeekIfEmpty(){
 
 </body>
 </html>
+
 
 
