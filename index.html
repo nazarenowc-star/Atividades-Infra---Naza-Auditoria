@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1306,84 +1305,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-/* =========================
-   BLOQUEIO POR SENHA (PIN)
-   =========================
-   Observação: em site estático (GitHub Pages), isso é uma proteção visual/local.
-*/
-const NAZA_PIN_CORRETO = "1234"; // <<< TROQUE AQUI para sua senha de 4 números
-
-function lockShow(){
-  const el = document.getElementById("lockScreen");
-  if(!el) return;
-  el.style.display = "flex";
-  el.setAttribute("aria-hidden","false");
-  document.documentElement.style.overflow = "hidden";
-  document.body.style.overflow = "hidden";
-  setTimeout(()=>{
-    const inp = document.getElementById("pinInput");
-    if(inp){ inp.focus(); if(inp.select) inp.select(); }
-  }, 50);
-}
-function lockHide(){
-  const el = document.getElementById("lockScreen");
-  if(!el) return;
-  el.style.display = "none";
-  el.setAttribute("aria-hidden","true");
-  document.documentElement.style.overflow = "";
-  document.body.style.overflow = "";
-}
-function clearPin(){
-  const inp = document.getElementById("pinInput");
-  if(inp) inp.value = "";
-  const msg = document.getElementById("pinErrorMsg");
-  if(msg) msg.textContent = "";
-  if(inp) inp.focus();
-}
-function checkPin(){
-  const inp = document.getElementById("pinInput");
-  const msg = document.getElementById("pinErrorMsg");
-  const val = (inp?.value || "").trim();
-
-  if(!/^\d{4}$/.test(val)){
-    if(msg) msg.textContent = "Digite exatamente 4 números.";
-    return;
-  }
-  if(val === NAZA_PIN_CORRETO){
-    localStorage.setItem("NAZA_UNLOCKED", "true");
-    lockHide();
-    clearPin();
-  } else {
-    if(msg) msg.textContent = "Senha incorreta.";
-  }
-}
-function sairBloqueio(){
-  localStorage.removeItem("NAZA_UNLOCKED");
-  lockShow();
-}
-
-// Enter para confirmar
-document.addEventListener("keydown", (e)=>{
-  const el = document.getElementById("lockScreen");
-  if(!el || el.style.display === "none") return;
-  if(e.key === "Enter"){ e.preventDefault(); checkPin(); }
-});
-
-// Inicializa bloqueio
-(function initLock(){
-  try{
-    if(localStorage.getItem("NAZA_UNLOCKED") === "true"){
-      lockHide();
-    }else{
-      lockShow();
-    }
-  }catch(_){
-    // se o navegador bloquear storage, ainda bloqueia
-    lockShow();
-  }
-})();
-
-
 /* =========================================================
    Dados dos equipamentos
 ========================================================= */
@@ -1750,32 +1671,27 @@ function setupEquipmentSelection() {
   const equipmentOptions = $("equipmentGroupOptions");
   const selectedDisplay = $("selectedEquipmentDisplay");
   
-  // Configurar evento change da máquina
   machineSelect.addEventListener('change', function() {
     const machine = this.value;
     equipmentOptions.innerHTML = '';
     $("selectedEquipmentDisplay").textContent = 'Nenhum';
     $("newEquipment").value = '';
     
-    // Limpar seleções específicas
     document.querySelectorAll('.equipment-select-group').forEach(group => {
       group.classList.remove('active');
     });
     
-    // Limpar opções de equipamentos específicos
     document.querySelectorAll('.equipment-options:not(#equipmentGroupOptions)').forEach(opt => {
       opt.innerHTML = '';
     });
     
     if (['PC', 'TR', 'PT', 'TP', 'VIX'].includes(machine)) {
-      // Para equipamentos com lista específica
       const groupDiv = $(`equipment${machine}Group`);
       if (groupDiv) {
         groupDiv.classList.add('active');
         populateEquipmentOptions(machine, $(`${machine.toLowerCase()}Options`), 'new');
       }
     } else {
-      // Para outros tipos (Mini Máquina, Bobcat, etc.)
       const groups = ['Mini Máquina', 'Bobcat', 'Mini Retro', 'CR 950', 'TR-Esteira'];
       groups.forEach(group => {
         const btn = document.createElement('button');
@@ -1796,7 +1712,6 @@ function setupEquipmentSelection() {
     }
   });
   
-  // Popular opções de equipamentos específicos
   function populateEquipmentOptions(type, container, mode = 'new') {
     const equipments = equipmentData[type];
     container.innerHTML = '';
@@ -1844,32 +1759,27 @@ function setupEditEquipmentSelection() {
   const equipmentOptions = $("editEquipmentGroupOptions");
   const selectedDisplay = $("editSelectedEquipmentDisplay");
   
-  // Configurar evento change da máquina
   machineSelect.addEventListener('change', function() {
     const machine = this.value;
     equipmentOptions.innerHTML = '';
     $("editSelectedEquipmentDisplay").textContent = 'Nenhum';
     $("editEquipment").value = '';
     
-    // Limpar seleções específicas
     document.querySelectorAll('.equipment-select-group[id^="editEquipment"]').forEach(group => {
       group.classList.remove('active');
     });
     
-    // Limpar opções de equipamentos específicos
     document.querySelectorAll('.equipment-options[id^="edit"]').forEach(opt => {
       opt.innerHTML = '';
     });
     
     if (['PC', 'TR', 'PT', 'TP', 'VIX'].includes(machine)) {
-      // Para equipamentos com lista específica
       const groupDiv = $(`editEquipment${machine}Group`);
       if (groupDiv) {
         groupDiv.classList.add('active');
         populateEditEquipmentOptions(machine, $(`edit${machine}Options`));
       }
     } else {
-      // Para outros tipos (Mini Máquina, Bobcat, etc.)
       const groups = ['Mini Máquina', 'Bobcat', 'Mini Retro', 'CR 950', 'TR-Esteira'];
       groups.forEach(group => {
         const btn = document.createElement('button');
@@ -1890,7 +1800,6 @@ function setupEditEquipmentSelection() {
     }
   });
   
-  // Popular opções de equipamentos específicos para edição
   function populateEditEquipmentOptions(type, container) {
     const equipments = equipmentData[type];
     container.innerHTML = '';
@@ -1925,11 +1834,7 @@ function setupEditEquipmentSelection() {
   }
 }
 
-/* =========================================================
-   Função para selecionar equipamento na edição baseado no valor existente
-========================================================= */
 function selectEquipmentInEditForm(machine, equipment) {
-  // Limpar seleções anteriores
   document.querySelectorAll('#editEquipmentGroupOptions .equipment-option').forEach(b => {
     b.classList.remove('selected');
   });
@@ -1937,14 +1842,12 @@ function selectEquipmentInEditForm(machine, equipment) {
     b.classList.remove('selected');
   });
   
-  // Esconder todos os grupos
   document.querySelectorAll('.equipment-select-group[id^="editEquipment"]').forEach(group => {
     group.classList.remove('active');
   });
   
   $("editEquipmentGroupOptions").innerHTML = '';
   
-  // Configurar baseado no tipo de máquina
   if (['PC', 'TR', 'PT', 'TP', 'VIX'].includes(machine)) {
     const groupDiv = $(`editEquipment${machine}Group`);
     if (groupDiv) {
@@ -1952,7 +1855,6 @@ function selectEquipmentInEditForm(machine, equipment) {
       populateEditEquipmentOptionsForEdit(machine, $(`edit${machine}Options`), equipment);
     }
   } else {
-    // Para outros tipos (Mini Máquina, Bobcat, etc.)
     const groups = ['Mini Máquina', 'Bobcat', 'Mini Retro', 'CR 950', 'TR-Esteira'];
     groups.forEach(group => {
       const btn = document.createElement('button');
@@ -1960,7 +1862,6 @@ function selectEquipmentInEditForm(machine, equipment) {
       btn.className = 'equipment-option';
       btn.textContent = group;
       
-      // Verificar se este é o equipamento selecionado
       const expectedEquipment = `${machine} - ${group}`;
       if (equipment === expectedEquipment) {
         btn.classList.add('selected');
@@ -1980,9 +1881,6 @@ function selectEquipmentInEditForm(machine, equipment) {
   }
 }
 
-/* =========================================================
-   Popular opções de equipamentos específicos para edição
-========================================================= */
 function populateEditEquipmentOptionsForEdit(type, container, selectedEquipment) {
   const equipments = equipmentData[type];
   container.innerHTML = '';
@@ -2224,7 +2122,6 @@ $("btnNewClear").addEventListener("click", ()=>{
   $("motivoNaoConclusaoGroup").style.display = 'none';
 });
 
-// Mostrar/esconder campo de motivo baseado no status
 $("newStatus").addEventListener("change", function() {
   const status = this.value;
   if (status === "Parcial" || status === "Pendente") {
@@ -2411,7 +2308,6 @@ async function processNewImport(){
   toast(`Importado: ${attached} fotos.`);
 }
 
-// Configurar eventos da importação
 $("newImportPhotos").addEventListener("change", (e)=>{
   pendingNewImportFiles = Array.from(e.target.files||[]);
   const n = pendingNewImportFiles.length;
@@ -2592,24 +2488,20 @@ async function openEdit(id){
   $("editShiftStart").value = a.shiftStart || "";
   $("editShiftEnd").value = a.shiftEnd || "";
   
-  // Mostrar/esconder campo de motivo
   if (a.status === "Parcial" || a.status === "Pendente") {
     $("editMotivoNaoConclusaoGroup").style.display = 'grid';
   } else {
     $("editMotivoNaoConclusaoGroup").style.display = 'none';
   }
   
-  // Configurar display do equipamento selecionado
   $("editSelectedEquipmentDisplay").textContent = a.equipment || "Nenhum";
   
-  // Configurar o seletor de equipamentos dinamicamente
   selectEquipmentInEditForm(a.machine, a.equipment);
 
   const modal = new bootstrap.Modal($("modalEdit"));
   modal.show();
 }
 
-// Mostrar/esconder campo de motivo na edição
 $("editStatus").addEventListener("change", function() {
   const status = this.value;
   if (status === "Parcial" || status === "Pendente") {
@@ -3242,7 +3134,7 @@ async function refreshDashboard(){
 }
 
 /* =========================================================
-   Exportar Dashboard para PDF (CORRIGIDO)
+   Exportar Dashboard para PDF
 ========================================================= */
 async function exportDashboardPDF(){
   try{
@@ -3273,7 +3165,6 @@ async function exportDashboardPDF(){
     pdf.setFontSize(10);
     pdf.text(`Período: ${dateRangeLabel()} • Gerado em: ${new Date().toLocaleString("pt-BR")}`, margin, margin+4);
 
-    // Aguardar um momento para os gráficos renderizarem
     await new Promise(resolve => setTimeout(resolve, 500));
 
     for(let i=0; i<items.length; i++){
@@ -3290,13 +3181,11 @@ async function exportDashboardPDF(){
       if(!canvas) continue;
       
       try {
-        // Capturar o canvas como imagem
         const imgData = canvas.toDataURL("image/png", 1.0);
         const padTop = 7;
         const imgW = cellW;
         const imgH = cellH - padTop;
         
-        // Adicionar a imagem ao PDF
         pdf.addImage(imgData, "PNG", x0, y0+padTop, imgW, imgH);
       } catch(err) {
         console.warn("Não foi possível capturar gráfico", it.id, err);
@@ -3344,7 +3233,6 @@ async function calcularAderencia(){
   const parciais = list.filter(a => norm(a.status) === "parcial").length;
   const taxaConclusao = totalProgramadas > 0 ? Math.round((concluidas / totalProgramadas) * 100) : 0;
   
-  // Calcular atrasos (atividades não concluídas com data final passada)
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
   const atrasos = list.filter(a => {
@@ -3355,13 +3243,11 @@ async function calcularAderencia(){
     return dataFim < hoje;
   }).length;
   
-  // Calcular atividades com falta de máquina
   const faltamMaquina = list.filter(a => 
     (a.status === "Parcial" || a.status === "Pendente") && 
     a.motivo === "Falta de máquina"
   ).length;
   
-  // Atualizar UI
   $("aderenciaGeral").textContent = `${taxaConclusao}%`;
   $("progressBarFill").style.width = `${taxaConclusao}%`;
   $("totalProgramadas").textContent = totalProgramadas;
@@ -3371,12 +3257,10 @@ async function calcularAderencia(){
   $("faltamMaquina").textContent = faltamMaquina;
   $("parciais").textContent = parciais;
   
-  // Calcular por tipo de máquina
   const maquinasMap = new Map();
   const empresasMap = new Map();
   
   for(const a of list){
-    // Por máquina
     if(!maquinasMap.has(a.machine)){
       maquinasMap.set(a.machine, {total:0, concluidas:0});
     }
@@ -3386,7 +3270,6 @@ async function calcularAderencia(){
       maquina.concluidas++;
     }
     
-    // Por empresa
     if(a.company){
       if(!empresasMap.has(a.company)){
         empresasMap.set(a.company, {total:0, concluidas:0});
@@ -3399,7 +3282,6 @@ async function calcularAderencia(){
     }
   }
   
-  // Gráfico por máquina
   const maquinasArray = Array.from(maquinasMap.entries());
   if(maquinasArray.length > 0){
     const maquinaLabels = maquinasArray.map(m => m[0]);
@@ -3442,7 +3324,6 @@ async function calcularAderencia(){
     });
   }
   
-  // Gráfico por empresa (top 10)
   const empresasArray = Array.from(empresasMap.entries()).slice(0, 10);
   if(empresasArray.length > 0){
     const empresaLabels = empresasArray.map(e => e[0]);
@@ -3485,7 +3366,6 @@ async function calcularAderencia(){
     });
   }
   
-  // Tabela por equipamento
   const equipamentosMap = new Map();
   for(const a of list){
     const equipamento = a.equipment || "Não informado";
@@ -3527,8 +3407,7 @@ async function calcularAderencia(){
 }
 
 /* =========================================================
-   Exportar Aderência para PDF - VERSÃO AJUSTADA
-   Mantém o front intacto e força os gráficos reais no PDF
+   Exportar Aderência para PDF
 ========================================================= */
 async function exportAderenciaPDF(){
   try{
@@ -3614,8 +3493,6 @@ async function exportAderenciaPDF(){
       cloneSection.remove();
     }
 
-    // Fallback extra: se por algum motivo os gráficos não aparecerem no clone,
-    // captura diretamente o bloco dos gráficos reais da aba de aderência.
     const chartsGrid = aderenciaSection.querySelector('.grid2.mt-4');
     const hasChartImageInPdf = originalCanvases.length >= 2;
     if(chartsGrid && hasChartImageInPdf){
@@ -3747,7 +3624,6 @@ $("btnBuildReport").addEventListener("click", async ()=>{
   const all = await getAllActivities();
   readFiltersUI();
   const filtered = sortActivitiesProfessional(applyFilters(all));
-  // Se houver seleção na lista, monta relatório apenas das marcadas.
   let list = filtered;
   if(typeof selectedIds !== "undefined" && selectedIds && selectedIds.size>0){
     list = filtered.filter(a=> selectedIds.has(a.id));
@@ -4027,7 +3903,6 @@ $("restoreJSON").addEventListener("change", async (e)=>{
     a.photosBefore = a.photosBefore || [];
     a.photosAfter = a.photosAfter || [];
     a.updatedAt = a.updatedAt || Date.now();
-    // Garantir compatibilidade com versões anteriores
     if(a.shift && !a.shiftStart) a.shiftStart = a.shift;
     if(!a.shiftEnd) a.shiftEnd = "";
     if(!a.osNumber) a.osNumber = generateOSNumber();
@@ -4185,7 +4060,6 @@ async function seedInitialWeekIfEmpty(){
 
 <!-- =========================
      BLOQUEIO POR SENHA (PIN) - OVERRIDE SEGURO
-     (não conflita com window.onload e garante funções globais)
      ========================= -->
 <script>
 (function(){
@@ -4250,19 +4124,16 @@ async function seedInitialWeekIfEmpty(){
     showLock();
   }
 
-  // Expor para os botões onclick
   window.checkPin = checkPin;
   window.clearPin = clearPin;
   window.sairBloqueio = sairBloqueio;
 
-  // Enter confirma quando bloqueado
   document.addEventListener("keydown", (e)=>{
     const lock = byId("lockScreen");
     if(!lock || lock.style.display === "none") return;
     if(e.key === "Enter"){ e.preventDefault(); checkPin(); }
   });
 
-  // Inicializa quando DOM estiver pronto
   document.addEventListener("DOMContentLoaded", ()=>{
     const {lock} = getEls();
     if(!lock) return;
@@ -4276,238 +4147,268 @@ async function seedInitialWeekIfEmpty(){
 })();
 </script>
 
-
-<!-- Firebase (cloud sync) - added without altering UI -->
+<!-- ============================================= -->
+<!-- FIREBASE SYNC (Firestore) - DADOS DAS ATIVIDADES -->
+<!-- ============================================= -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 /* ===========================
-   CLOUD SYNC (Firestore)
-   - Keeps IndexedDB as source of truth for offline UX
-   - Mirrors changes to Firestore collection:
-     infra_atividades__atividades-infra---naza-audit
-   - Uses deterministic doc ids (activity.id) to avoid duplicates
+   CLOUD SYNC (Firestore) - Sincroniza atividades entre dispositivos
+   Projeto: atividades-infra---naza-audit
    =========================== */
-
-(function(){
-  // Guard in case Firebase CDN is blocked
-  if (typeof firebase === "undefined") {
-    console.warn("Firebase SDK não carregou. App seguirá apenas local.");
-    return;
-  }
-
-  // Your Firebase project config (provided)
-  const firebaseConfig = {
-    apiKey: "AIzaSyDdCf-WvW7bNlxJq9gQPIANlxOO-D5sXHo",
-    authDomain: "atividades-infra---naza-audit.firebaseapp.com",
-    projectId: "atividades-infra---naza-audit",
-    storageBucket: "atividades-infra---naza-audit.firebasestorage.app",
-    appId: "1:730232324649:web:093e4f05d61fc4bf375238"
-  };
-
-  const COLLECTION_NAME = "infra_atividades__atividades-infra---naza-audit";
-
-  // Initialize (idempotent)
-  try {
-    if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  } catch(e){
-    // Some builds throw if already initialized
-    console.debug("Firebase init:", e && e.message ? e.message : e);
-  }
-
-  const fdb = firebase.firestore();
-
-  // Small, safe client id (only for conflict tracing)
-  const CLIENT_ID_KEY = "INFRA_CLIENT_ID_V1";
-  const getClientId = () => {
-    try {
-      let v = localStorage.getItem(CLIENT_ID_KEY);
-      if (!v) {
-        v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("c_" + Math.random().toString(16).slice(2) + Date.now());
-        localStorage.setItem(CLIENT_ID_KEY, v);
-      }
-      return v;
-    } catch(_) {
-      return "no_localstorage";
-    }
-  };
-  const CLIENT_ID = getClientId();
-
-  // Snapshot loop guard (avoid re-upload when we're applying cloud -> local)
-  let APPLYING_CLOUD = false;
-
-  function toDocId(id){
-    // Firestore doc ids cannot contain '/'
-    return String(id).replaceAll("/", "_");
-  }
-
-  function normalizeActivityForCloud(a){
-    // Never mutate original object
-    const clean = Object.assign({}, a);
-    clean._meta = Object.assign({}, clean._meta || {}, {
-      clientId: CLIENT_ID,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      deleted: false
-    });
-    return clean;
-  }
-
-  async function cloudUpsertActivity(activity){
-    try {
-      if (!activity || activity.id == null) return;
-      const docId = toDocId(activity.id);
-      const payload = normalizeActivityForCloud(activity);
-      await fdb.collection(COLLECTION_NAME).doc(docId).set(payload, { merge: true });
-    } catch (e) {
-      console.warn("Cloud upsert falhou (vai tentar de novo automaticamente quando editar):", e);
-    }
-  }
-
-  async function cloudMarkDeleted(ids){
-    try {
-      const batch = fdb.batch();
-      (ids||[]).forEach(id=>{
-        const docId = toDocId(id);
-        const ref = fdb.collection(COLLECTION_NAME).doc(docId);
-        batch.set(ref, { _meta: {
-          clientId: CLIENT_ID,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          deleted: true,
-          deletedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }}, { merge:true });
-      });
-      await batch.commit();
-    } catch (e) {
-      console.warn("Cloud delete marker falhou:", e);
-    }
-  }
-
-  // ----- Wrap local functions (do not break existing calls) -----
-  // We expect putActivity / deleteActivities to exist already.
-  const __putActivityLocal = window.putActivity;
-  const __deleteActivitiesLocal = window.deleteActivities;
-
-  if (typeof __putActivityLocal === "function") {
-    window.putActivity = async function(a){
-      // Ensure id exists (deterministic doc id avoids duplicates)
-      if (a && (a.id === undefined || a.id === null || a.id === "")) {
-        a.id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("id_" + Math.random().toString(16).slice(2) + Date.now());
-      }
-
-      // Local first (offline always works)
-      const ok = await __putActivityLocal(a);
-
-      // Cloud (skip when applying snapshot)
-      if (!APPLYING_CLOUD) await cloudUpsertActivity(a);
-      return ok;
+(function() {
+    const firebaseConfig = {
+        apiKey: "AIzaSyDdCf-WvW7bNlxJq9gQPIANlxOO-D5sXHo",
+        authDomain: "atividades-infra---naza-audit.firebaseapp.com",
+        projectId: "atividades-infra---naza-audit",
+        storageBucket: "atividades-infra---naza-audit.firebasestorage.app",
+        appId: "1:730232324649:web:093e4f05d61fc4bf375238"
     };
-  }
+    const COLLECTION_NAME = "infra_atividades__atividades-infra---naza-audit";
 
-  if (typeof __deleteActivitiesLocal === "function") {
-    window.deleteActivities = async function(ids){
-      const ok = await __deleteActivitiesLocal(ids);
-      // Mark deleted in cloud so other devices remove too
-      if (!APPLYING_CLOUD) await cloudMarkDeleted(ids || []);
-      return ok;
-    };
-  }
-
-  // ----- Real-time mirror: cloud -> local -----
-  // Loads/merges activities from Firestore into IndexedDB.
-  function startCloudListener(){
+    let app;
     try {
-      fdb.collection(COLLECTION_NAME).onSnapshot(async (snap)=>{
-        try{
-          APPLYING_CLOUD = true;
-
-          // Apply changed docs only (faster and avoids heavy redraw)
-          const changes = snap.docChanges();
-          for (const ch of changes) {
-            const doc = ch.doc;
-            const data = doc.data() || {};
-            const meta = data._meta || {};
-            const isDeleted = meta.deleted === true;
-
-            // Skip echo of our own write if it comes back unchanged
-            // (still safe if we don't skip)
-            // if (meta.clientId === CLIENT_ID) continue;
-
-            // Restore original id (doc id may be sanitized)
-            if (!data.id) data.id = doc.id;
-
-            if (isDeleted) {
-              // delete locally if exists
-              try {
-                if (typeof window.getActivity === "function") {
-                  const exists = await window.getActivity(data.id);
-                  if (exists) await __deleteActivitiesLocal([data.id]);
-                }
-              } catch(_) {}
-            } else {
-              // Upsert locally without re-upload
-              if (typeof __putActivityLocal === "function") {
-                await __putActivityLocal(data);
-              }
-            }
-          }
-
-          // Re-render if the app exposes refresh method
-          if (typeof window.refreshAll === "function") window.refreshAll();
-          if (typeof window.renderAll === "function") window.renderAll();
-
-        } finally {
-          APPLYING_CLOUD = false;
+        if (!firebase.apps || !firebase.apps.length) {
+            app = firebase.initializeApp(firebaseConfig);
+        } else {
+            app = firebase.app();
         }
-      }, (err)=>{
-        console.warn("Listener Firestore erro:", err);
-      });
-    } catch(e){
-      console.warn("Não foi possível iniciar listener Firestore:", e);
+    } catch (e) {
+        console.warn("Erro ao inicializar Firebase (pode já estar iniciado):", e);
+        app = firebase.app();
     }
-  }
+    const fdb = firebase.firestore(app);
 
-  // Start after DB is ready (openDB is in your code)
-  const tryStart = async () => {
-    try {
-      if (typeof window.openDB === "function") {
-        // openDB is already called by the app; this is just to ensure db exists
-        // If openDB returns a promise, await it. If not, ignore.
-        const r = window.openDB();
-        if (r && typeof r.then === "function") await r;
-      }
-    } catch(_) {}
-    startCloudListener();
-  };
+    const CLIENT_ID_KEY = "INFRA_CLIENT_ID_V1";
+    const getClientId = () => {
+        try {
+            let v = localStorage.getItem(CLIENT_ID_KEY);
+            if (!v) {
+                v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("c_" + Math.random().toString(16).slice(2) + Date.now());
+                localStorage.setItem(CLIENT_ID_KEY, v);
+            }
+            return v;
+        } catch(_) { return "no_localstorage"; }
+    };
+    const CLIENT_ID = getClientId();
 
-  // Start when DOM is ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", tryStart);
-  } else {
-    tryStart();
-  }
+    let APPLYING_CLOUD = false;
 
+    function toDocId(id) { return String(id).replaceAll("/", "_"); }
+
+    function normalizeActivityForCloud(a) {
+        const clean = Object.assign({}, a);
+        delete clean._meta;
+        clean._meta = {
+            clientId: CLIENT_ID,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            deleted: false
+        };
+        return clean;
+    }
+
+    async function cloudUpsertActivity(activity) {
+        if (APPLYING_CLOUD) return;
+        if (!activity || activity.id == null) return;
+        try {
+            const docId = toDocId(activity.id);
+            const payload = normalizeActivityForCloud(activity);
+            await fdb.collection(COLLECTION_NAME).doc(docId).set(payload, { merge: true });
+            console.log(`✅ Atividade ${activity.osNumber} (${activity.id}) sincronizada com a nuvem.`);
+        } catch (e) { console.warn("Falha ao sincronizar para nuvem:", e); }
+    }
+
+    async function cloudMarkDeleted(ids) {
+        if (APPLYING_CLOUD || !ids || ids.length === 0) return;
+        try {
+            const batch = fdb.batch();
+            ids.forEach(id => {
+                const docId = toDocId(id);
+                const ref = fdb.collection(COLLECTION_NAME).doc(docId);
+                batch.set(ref, { _meta: {
+                    clientId: CLIENT_ID,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    deleted: true,
+                    deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }}, { merge: true });
+            });
+            await batch.commit();
+            console.log(`✅ ${ids.length} atividade(s) marcadas como deletadas na nuvem.`);
+        } catch (e) { console.warn("Falha ao marcar deleção na nuvem:", e); }
+    }
+
+    const originalPutActivity = window.putActivity;
+    const originalDeleteActivities = window.deleteActivities;
+
+    if (typeof originalPutActivity === 'function') {
+        window.putActivity = async function(activity) {
+            const result = await originalPutActivity(activity);
+            cloudUpsertActivity(activity).catch(e => console.warn("Erro no sync put:", e));
+            return result;
+        };
+        console.log("✅ Função putActivity envelopada para sync com nuvem.");
+    }
+
+    if (typeof originalDeleteActivities === 'function') {
+        window.deleteActivities = async function(ids) {
+            const result = await originalDeleteActivities(ids);
+            cloudMarkDeleted(ids).catch(e => console.warn("Erro no sync delete:", e));
+            return result;
+        };
+        console.log("✅ Função deleteActivities envelopada para sync com nuvem.");
+    }
+
+    function startCloudListener() {
+        console.log("🔄 Iniciando listener do Firestore para receber atualizações...");
+        fdb.collection(COLLECTION_NAME).onSnapshot(async (snapshot) => {
+            if (APPLYING_CLOUD) {
+                console.log("⏸️ Aplicação local em andamento, ignorando snapshot.");
+                return;
+            }
+            APPLYING_CLOUD = true;
+            console.log("⬇️ Recebendo atualizações da nuvem...");
+
+            try {
+                const changes = snapshot.docChanges();
+                let needsRefresh = false;
+
+                for (const change of changes) {
+                    const doc = change.doc;
+                    const data = doc.data();
+                    const meta = data?._meta || {};
+
+                    if (meta.clientId === CLIENT_ID) {
+                        continue;
+                    }
+
+                    if (!data.id) data.id = doc.id;
+
+                    if (change.type === 'removed' || meta.deleted === true) {
+                        console.log(`🗑️ Removendo atividade ${doc.id} localmente (deletada na nuvem).`);
+                        if (typeof originalDeleteActivities === 'function') {
+                            await originalDeleteActivities([data.id]);
+                        }
+                        needsRefresh = true;
+                    } else {
+                        console.log(`📥 Atualizando/Adicionando atividade ${data.osNumber || doc.id} localmente.`);
+                        if (typeof originalPutActivity === 'function') {
+                            await originalPutActivity(data);
+                        }
+                        needsRefresh = true;
+                    }
+                }
+
+                if (needsRefresh) {
+                    console.log("🔄 Atualizando interface após sync da nuvem...");
+                    if (typeof window.refreshTable === 'function') await window.refreshTable();
+                    if (typeof window.loadPhotoSelect === 'function') await window.loadPhotoSelect();
+                    if (typeof window.refreshDashboard === 'function') await window.refreshDashboard();
+                    if (typeof window.calcularAderencia === 'function') await window.calcularAderencia();
+                }
+            } catch (error) {
+                console.error("Erro ao processar snapshot do Firestore:", error);
+            } finally {
+                APPLYING_CLOUD = false;
+            }
+        }, (error) => {
+            console.error("Erro no listener do Firestore:", error);
+            APPLYING_CLOUD = false;
+        });
+    }
+
+    async function initSync() {
+        console.log("🚀 Iniciando módulo de sincronia em nuvem...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        startCloudListener();
+        console.log("🎯 Sincronia em nuvem ativa.");
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSync);
+    } else {
+        initSync();
+    }
 })();
 </script>
-<!-- SENSOR NAZA PORTAL - INFRAESTRUTURA -->
+
+<!-- ============================================= -->
+<!-- SENSOR PARA O FRONTEND NAZA AUDITORIA HUB -->
+<!-- Envia dados do App de Atividades para o painel -->
+<!-- ============================================= -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
-(function(){
-  const firebaseConfig={apiKey:"AIzaSyDneReMjO78JqJ-LvmSTiQqUMkxT97H6JE",authDomain:"naza-auditoria-hub.firebaseapp.com",databaseURL:"https://naza-auditoria-hub-default-rtdb.firebaseio.com",projectId:"naza-auditoria-hub"};
-  const app=firebase.apps.length?firebase.app():firebase.initializeApp(firebaseConfig);
-  const db=app.database(); const SISTEMA_ID='infra';
-  const num=(id)=>{const el=document.getElementById(id); if(!el) return 0; const m=(el.textContent||'').replace(/\./g,'').replace(',','.').match(/-?\d+(?:\.\d+)?/); return m?Number(m[0]):0;};
-  function coletar(){ const total=num('kpiTotal'), done=num('kpiDone'), pend=num('kpiPending'); const gauge=total>0?(done/total*100):0; return {sistema:SISTEMA_ID,valores:[gauge,total,done],dadosCompletos:{total,concluidas:done,pendencias:pend},timestamp:Date.now()}; }
-  function enviar(){const payload=coletar(); db.ref('sensores/'+SISTEMA_ID).set(payload).then(()=>console.log('🟢 Sensor Infra ativo',payload));}
-  setTimeout(enviar,4000); setInterval(enviar,30000);
+(function() {
+    const frontendFirebaseConfig = {
+        apiKey: "AIzaSyDneReMjO78JqJ-LvmSTiQqUMkxT97H6JE",
+        authDomain: "naza-auditoria-hub.firebaseapp.com",
+        databaseURL: "https://naza-auditoria-hub-default-rtdb.firebaseio.com",
+        projectId: "naza-auditoria-hub"
+    };
+
+    const SISTEMA_ID = 'infra';
+    const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(frontendFirebaseConfig, "frontendApp");
+    const db = app.database();
+
+    function coletarDadosParaOFrontend() {
+        const totalEl = document.getElementById('kpiTotal');
+        const concluidasEl = document.getElementById('kpiDone');
+        const pendentesEl = document.getElementById('kpiPending');
+
+        const extrairNumero = (el) => {
+            if (!el) return 0;
+            const texto = el.textContent || el.innerText || '';
+            const numeros = texto.replace(/\./g, '').replace(',', '.').match(/-?\d+(?:\.\d+)?/);
+            return numeros ? Number(numeros[0]) : 0;
+        };
+
+        const total = extrairNumero(totalEl);
+        const concluidas = extrairNumero(concluidasEl);
+        const pendentes = extrairNumero(pendentesEl);
+        
+        const gauge = total > 0 ? Math.round((concluidas / total) * 100) : 0;
+
+        const payload = {
+            sistema: SISTEMA_ID,
+            valores: [gauge, total, concluidas],
+            dadosCompletos: {
+                total: total,
+                concluidas: concluidas,
+                pendencias: pendentes,
+                timestamp: Date.now()
+            },
+            timestamp: Date.now()
+        };
+
+        console.log(`📡 Sensor ${SISTEMA_ID} preparado:`, payload);
+        return payload;
+    }
+
+    function enviarParaOFrontend() {
+        const estaDesbloqueado = localStorage.getItem("NAZA_UNLOCKED") === "true";
+
+        if (!estaDesbloqueado) {
+            return;
+        }
+
+        const payload = coletarDadosParaOFrontend();
+        
+        db.ref('sensores/' + SISTEMA_ID).set(payload)
+            .then(() => {
+                console.log(`🟢 Sensor ${SISTEMA_ID} enviado com sucesso para o frontend:`, payload.valores);
+            })
+            .catch((error) => {
+                console.error(`🔴 Falha no sensor ${SISTEMA_ID}:`, error);
+            });
+    }
+
+    console.log(`🎯 Iniciando sensor ${SISTEMA_ID} para o frontend naza-auditoria-hub...`);
+    
+    setTimeout(enviarParaOFrontend, 5000);
+    setInterval(enviarParaOFrontend, 30000);
 })();
 </script>
 
 </body>
-  
 </html>
-
-
-
-
-
