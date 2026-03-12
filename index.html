@@ -4434,23 +4434,30 @@ async function seedInitialWeekIfEmpty(){
         const extrairNumero = (el) => {
             if (!el) return 0;
             const texto = el.textContent || el.innerText || '';
-            const numeros = texto.replace(/\./g, '').replace(',', '.').match(/-?\d+(?:\.\d+)?/);
+            const numeros = texto
+                .replace(/\./g, '')
+                .replace(',', '.')
+                .match(/-?\d+(?:\.\d+)?/);
             return numeros ? Number(numeros[0]) : 0;
         };
 
         const total = extrairNumero(totalEl);
         const concluidas = extrairNumero(concluidasEl);
         const pendentes = extrairNumero(pendentesEl);
-        
-        const gauge = total > 0 ? Math.round((concluidas / total) * 100) : 0;
+
+        const gauge = total > 0
+            ? Number(((concluidas / total) * 100).toFixed(1))
+            : 0;
 
         const payload = {
             sistema: SISTEMA_ID,
-            valores: [gauge, concluidas, pendentes],
+            valores: [total, concluidas, pendentes],
+            gauge: gauge,
             dadosCompletos: {
                 total: total,
                 concluidas: concluidas,
                 pendencias: pendentes,
+                gauge: gauge,
                 timestamp: Date.now()
             },
             timestamp: Date.now()
@@ -4468,10 +4475,10 @@ async function seedInitialWeekIfEmpty(){
         }
 
         const payload = coletarDadosParaOFrontend();
-        
+
         db.ref('sensores/' + SISTEMA_ID).set(payload)
             .then(() => {
-                console.log(`🟢 Sensor ${SISTEMA_ID} enviado com sucesso para o frontend:`, payload.valores);
+                console.log(`🟢 Sensor ${SISTEMA_ID} enviado com sucesso para o frontend:`, payload);
             })
             .catch((error) => {
                 console.error(`🔴 Falha no sensor ${SISTEMA_ID}:`, error);
@@ -4479,7 +4486,7 @@ async function seedInitialWeekIfEmpty(){
     }
 
     console.log(`🎯 Iniciando sensor ${SISTEMA_ID} para o frontend naza-auditoria-hub...`);
-    
+
     setTimeout(enviarParaOFrontend, 5000);
     setInterval(enviarParaOFrontend, 30000);
 })();
@@ -4487,3 +4494,4 @@ async function seedInitialWeekIfEmpty(){
 
 </body>
 </html>
+
