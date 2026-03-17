@@ -1502,12 +1502,38 @@ function parseOsNumeric(os){
 function formatOsNumber(num){
   return `OS-${String(Math.max(1, Number(num)||1)).padStart(6,"0")}`;
 }
-function generateOSNumber(){
-  let counter = 0;
-  try{ counter = parseInt(localStorage.getItem(OS_COUNTER_KEY)||"0",10) || 0; }catch(_){}
-  counter += 1;
-  try{ localStorage.setItem(OS_COUNTER_KEY, String(counter)); }catch(_){}
-  return formatOsNumber(counter);
+function collectReservedOsNumbers(list){
+  const set = new Set();
+  for(const a of (list||[])){
+    const n = parseOsNumeric(a?.osNumber);
+    if(n > 0) set.add(n);
+  }
+  try{
+    const counter = parseInt(localStorage.getItem(OS_COUNTER_KEY)||"0",10) || 0;
+    if(counter > 0) set.add(counter);
+  }catch(_){ }
+  return set;
+}
+function reserveNextOsNumberFromSet(reserved){
+  const set = reserved instanceof Set ? reserved : new Set();
+  let maxOs = 0;
+  for(const n of set){
+    const v = Number(n)||0;
+    if(v > maxOs) maxOs = v;
+  }
+  let next = maxOs + 1;
+  while(set.has(next)) next += 1;
+  set.add(next);
+  try{ localStorage.setItem(OS_COUNTER_KEY, String(next)); }catch(_){ }
+  return formatOsNumber(next);
+}
+async function generateOSNumber(reservedSet=null){
+  if(reservedSet instanceof Set){
+    return reserveNextOsNumberFromSet(reservedSet);
+  }
+  const all = await getAllActivities();
+  const reserved = collectReservedOsNumbers(all);
+  return reserveNextOsNumberFromSet(reserved);
 }
 function todayISO(){
   const d=new Date();
@@ -1592,18 +1618,18 @@ async function syncProfessionalOrdering(){
   let maxOs = 0;
   let changed = false;
   all.forEach(a=>{ maxOs = Math.max(maxOs, parseOsNumeric(a.osNumber)); });
-  try{
-    const stored = parseInt(localStorage.getItem(OS_COUNTER_KEY)||"0",10) || 0;
-    if(stored < maxOs) localStorage.setItem(OS_COUNTER_KEY, String(maxOs));
-  }catch(_){}
   const sorted = sortActivitiesProfessional(all);
+  const seenOs = new Set();
   const dayMap = new Map();
   for(const a of sorted){
-    if(!parseOsNumeric(a.osNumber)){
-      maxOs += 1;
+    let osNum = parseOsNumeric(a.osNumber);
+    if(!osNum || seenOs.has(osNum)){
+      do { maxOs += 1; } while(seenOs.has(maxOs));
       a.osNumber = formatOsNumber(maxOs);
+      osNum = maxOs;
       changed = true;
     }
+    seenOs.add(osNum);
     const dayKey = a.start || "sem-data";
     const nextDayOrder = (dayMap.get(dayKey) || 0) + 1;
     dayMap.set(dayKey, nextDayOrder);
@@ -1612,6 +1638,10 @@ async function syncProfessionalOrdering(){
       changed = true;
     }
   }
+  try{
+    const stored = parseInt(localStorage.getItem(OS_COUNTER_KEY)||"0",10) || 0;
+    if(stored < maxOs) localStorage.setItem(OS_COUNTER_KEY, String(maxOs));
+  }catch(_){ }
   if(changed){
     for(const a of sorted){
       await putActivity(a);
@@ -2201,9 +2231,13 @@ $("formNew").addEventListener("submit", async (e)=>{
     return;
   }
 
+  const plannerDefault = safeText($("newPlanner").value) || safeText(await getPref("planner")) || "Programador";
+  const companyDefault = safeText($("newCompany").value) || safeText(await getPref("company")) || "Samarco";
+  const reservedOs = collectReservedOsNumbers(await getAllActivities());
+
   const a = {
     id: uid(),
-    osNumber: generateOSNumber(),
+    osNumber: await generateOSNumber(reservedOs),
     machine: $("newMachine").value.trim(),
     equipment: safeText($("newEquipment").value),
     location: safeText($("newLocation").value),
@@ -2217,8 +2251,8 @@ $("formNew").addEventListener("submit", async (e)=>{
     status: status,
     motivo: motivo,
     motivoDetalhado: safeText($("newMotivoDetalhado").value),
-    planner: safeText($("newPlanner").value),
-    company: safeText($("newCompany").value),
+    planner: plannerDefault,
+    company: companyDefault,
     shiftStart: $("newShiftStart").value || "",
     shiftEnd: $("newShiftEnd").value || "",
     createdAt: Date.now(),
@@ -2261,8 +2295,32 @@ $("formNew").addEventListener("submit", async (e)=>{
 let pendingNewImportFiles = [];
 
 function inferTitleFromFileName(name){
-  const base = (name||"").replace(/\.[a-z0-9]+$/i,"").trim();
+  const base = (name||"")
+    .replace(/\.[a-z0-9]+$/i,"")
+    .replace(/[_\-]+/g," ")
+    .replace(/\s+/g," ")
+    .trim();
   return base || "Nova atividade";
+}
+
+function inferActivityTypeFromText(text){
+  const t = normKey(text || "");
+  if(!t) return "";
+  if(t.includes("acesso")) return "Acesso";
+  if(t.includes("dren") || t.includes("canalet") || t.includes("valeta")) return "Drenagem";
+  if(t.includes("talude") || t.includes("conten")) return "Contenção";
+  if(t.includes("praca") || t.includes("praça") || t.includes("patio") || t.includes("pátio") || t.includes("plataforma")) return "Praça / Plataforma";
+  if(t.includes("rampa") || t.includes("estrada") || t.includes("via") || t.includes("pista")) return "Estrada / Rampa";
+  if(t.includes("leito") || t.includes("cv") || t.includes("hopper") || t.includes("correia")) return "Leito de Correia";
+  if(t.includes("limpeza") || t.includes("material") || t.includes("retirada")) return "Transporte de Material";
+  return "";
+}
+
+function inferLocationFromText(text){
+  const raw = safeText(text || "");
+  if(!raw) return "";
+  const hit = raw.match(/(CV\s*\d{1,3}|Hopper\s*\d{1,3}|Bica\s*\d{1,3}|Moega\s*\d{1,3}|Britador\s*\d{1,3})/i);
+  return hit ? hit[0].replace(/\s+/g," ").trim() : "";
 }
 
 function inferBeforeAfter(mode, fileName){
@@ -2295,32 +2353,48 @@ async function processNewImport(){
   if(!files.length){ toast("Selecione as fotos para importar."); return; }
 
   const all = await getAllActivities();
+  const reservedOs = collectReservedOsNumbers(all);
   const mode = $("newImportClass").value || "auto";
   const autoCreate = ($("newImportAutoCreate").value||"yes")==="yes";
+  const plannerDefault = safeText($("newPlanner").value) || safeText(await getPref("planner")) || "Programador";
+  const companyDefault = safeText($("newCompany").value) || safeText(await getPref("company")) || "Samarco";
+  const fallbackStart = $("newStart").value || filters.start || todayISO();
+  const fallbackEnd = $("newEnd").value || filters.end || fallbackStart;
 
-  let created=0, attached=0, skipped=0;
+  let created=0, attached=0, skipped=0, failed=0;
+  let orderingNeedsSync = false;
 
   for(const f of files){
     const titleGuess = inferTitleFromFileName(f.name);
-    let target = bestMatchActivityByTitle(all, titleGuess);
+    const matchedId = matchActivityByFilename(f.name, all);
+    let target = matchedId ? all.find(a=>a.id===matchedId) : null;
+
+    if(!target){
+      target = bestMatchActivityByTitle(all, titleGuess);
+    }
 
     if(!target && autoCreate){
+      const inferredActivityType = $("newActivityType").value || inferActivityTypeFromText(titleGuess);
+      const inferredLocation = $("newLocation").value || inferLocationFromText(titleGuess);
+      const status = $("newStatus").value || "Programada";
       const a = {
         id: uid(),
-        osNumber: generateOSNumber(),
-        machine: $("newMachine").value || "Mini Máquina",
-        equipment: $("newEquipment").value || "MM-01",
+        osNumber: await generateOSNumber(reservedOs),
+        machine: safeText($("newMachine").value) || "Mini Máquina",
+        equipment: safeText($("newEquipment").value) || "MM-01",
         title: titleGuess,
-        location: $("newLocation").value || "",
-        activityType: $("newActivityType").value || "",
-        desc: $("newDesc").value || "",
-        planner: $("newPlanner").value || "",
-        company: $("newCompany").value || "",
-        responsible: $("newResponsible").value || "",
+        location: inferredLocation,
+        activityType: inferredActivityType,
+        desc: safeText($("newDesc").value) || titleGuess,
+        planner: plannerDefault,
+        company: companyDefault,
+        responsible: safeText($("newResponsible").value) || "",
         priority: $("newPriority").value || "Média",
-        start: $("newStart").value || todayISO(),
-        end: $("newEnd").value || todayISO(),
-        status: $("newStatus").value || "Programada",
+        start: fallbackStart,
+        end: fallbackEnd,
+        status,
+        motivo: ["Parcial","Pendente"].includes(status) ? (safeText($("newMotivo").value) || "") : "",
+        motivoDetalhado: ["Parcial","Pendente"].includes(status) ? (safeText($("newMotivoDetalhado").value) || "") : "",
         shiftStart: $("newShiftStart").value || "",
         shiftEnd: $("newShiftEnd").value || "",
         createdAt: Date.now(),
@@ -2328,17 +2402,25 @@ async function processNewImport(){
         photosBefore: [],
         photosAfter: []
       };
-      await putActivity(a);
-      await syncProfessionalOrdering();
+      const saved = await putActivity(a);
+      if(!saved){
+        console.warn("⛔ Falha ao criar atividade pela importação:", a);
+        failed++;
+        continue;
+      }
       all.push(a);
       target = a;
       created++;
+      orderingNeedsSync = true;
     }
 
     if(!target){
       skipped++;
       continue;
     }
+
+    target.photosBefore = Array.isArray(target.photosBefore) ? target.photosBefore : [];
+    target.photosAfter = Array.isArray(target.photosAfter) ? target.photosAfter : [];
 
     const side = inferBeforeAfter(mode, f.name);
     const dataUrl = await fileToDataURL(f);
@@ -2349,20 +2431,41 @@ async function processNewImport(){
     else target.photosBefore.push(photo);
 
     target.updatedAt = Date.now();
-    await putActivity(target);
-    await syncProfessionalOrdering();
+    if(!target.activityType){
+      target.activityType = inferActivityTypeFromText(target.title || target.desc || f.name);
+    }
+    if(!target.planner) target.planner = plannerDefault;
+    if(!target.company) target.company = companyDefault;
+    if(!target.osNumber || parseOsNumeric(target.osNumber) <= 0){
+      target.osNumber = await generateOSNumber(reservedOs);
+      orderingNeedsSync = true;
+    } else {
+      reservedOs.add(parseOsNumeric(target.osNumber));
+    }
+    if(!target.start) target.start = fallbackStart;
+    if(!target.end) target.end = fallbackEnd || target.start;
+    const savedTarget = await putActivity(target);
+    if(!savedTarget){
+      console.warn("⛔ Falha ao salvar atividade após anexar foto:", target);
+      failed++;
+      continue;
+    }
     attached++;
+  }
+
+  if(orderingNeedsSync){
+    await syncProfessionalOrdering();
   }
 
   pendingNewImportFiles = [];
   $("newImportPhotos").value = "";
-  $("importHint").textContent = `Importação concluída: ${attached} encaixadas • ${created} atividades novas • ${skipped} sem encaixe.`;
+  $("importHint").textContent = `Importação concluída: ${attached} encaixadas • ${created} atividades novas • ${skipped} sem encaixe • ${failed} rejeitadas.`;
 
   await refreshTable();
   await loadPhotoSelect();
   await refreshDashboard();
   await calcularAderencia();
-  toast(`Importado: ${attached} fotos.`);
+  toast(`Importado: ${attached} fotos • novas: ${created} • falhas: ${failed}.`);
 }
 
 $("newImportPhotos").addEventListener("change", (e)=>{
